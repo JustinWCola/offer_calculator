@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { calculate, cityPresets } from './calculator.js';
 import { scoreFactors } from './scoring.js';
+import { SORT_OPTIONS, sortOffers, multiplierHeat, productValue } from './table-utils.js';
 
 const STORAGE_KEY = 'offer-deck:v1';
-const MAX_OFFERS = 4;
+const MAX_OFFERS = 6;
 const cities = { beijing: '北京', shanghai: '上海', shenzhen: '深圳', guangzhou: '广州', hangzhou: '杭州', chengdu: '成都', nanjing: '南京', wuhan: '武汉', custom: '自定义' };
 const suits = ['♠', '♥', '♣', '♦'];
 const newId = () => globalThis.crypto?.randomUUID?.() ?? `offer-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
@@ -20,6 +21,8 @@ const defaults = {
   growth: 1, locationFactor: 1,
 };
 const labels = {
+  city: '工作城市', baseMode: '缴费基数模式', bonusTax: '奖金计税方式', signTax: '签字费计税方式',
+  stockTax: '股票计税方式', optionTax: '期权计税方式', otherTax: '其他现金计税方式',
   monthlyBase: '税前月薪', salaryMonths: '发薪月数', monthlyAllowance: '每月补贴', allowanceMonths: '补贴月数',
   annualBonus: '额外年终奖', bonusFactor: '奖金兑现系数', signOn: '签字费', signFactor: '签字费兑现系数',
   stock: '本年归属股票', stockFactor: '股票兑现系数', option: '本年可实现期权', optionFactor: '期权兑现系数',
@@ -47,7 +50,7 @@ function exampleOffers() {
 function loadOffers() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (Array.isArray(saved) && saved.length > 0 && saved.length <= MAX_OFFERS && saved.every(o =>
+    if (Array.isArray(saved) && saved.length >= 0 && saved.length <= MAX_OFFERS && saved.every(o =>
       typeof o.id === 'string' && typeof o.name === 'string' && o.input && Object.keys(cities).includes(o.input.city)) &&
       new Set(saved.map(o => o.id)).size === saved.length) {
       return saved.map(o => ({ id: o.id, name: o.name.slice(0, 32), input: { ...defaults, ...presetFields(o.input.city),
@@ -62,7 +65,7 @@ function evaluate(offer) {
   catch (error) {
     let message = error.message;
     for (const [key, label] of Object.entries(labels).sort((a, b) => b[0].length - a[0].length)) message = message.replaceAll(key, label);
-    return { ...offer, result: null, error: message };
+    return { ...offer, result: null, error: message, errorField: Object.keys(labels).sort((a, b) => b.length - a.length).find(key => error.message.includes(key)) };
   }
 }
 
@@ -91,114 +94,12 @@ function SelectField({ offer, field, label, options, update, wide = false }) {
 const taxOptions = [['comprehensive', '并入综合所得'], ['none', '本年不计税']];
 const equityOptions = [['equity', '符合条件股权单独计税'], ...taxOptions];
 
-function OfferCard({ offer, index, isBest, isActive, maxHourly, onUpdate, onRemove, onDuplicate, onPlay, canDuplicate, canRemove }) {
-  const { result: r, error } = offer;
-  const update = (field, value) => onUpdate(offer.id, field, value);
-  const number = (field, options = {}) => <NumberField key={field} offer={offer} field={field} update={update} {...options} />;
-  const select = (field, options, label) => <SelectField key={field} offer={offer} field={field} update={update} options={options} label={label} />;
-  return <article className={`offer-card ${isBest ? 'is-best' : ''} ${isActive ? 'is-active' : ''}`} aria-label={`Offer ${index + 1}：${offer.name}`}>
-    <div className="card-header">
-      <div className={`card-suit ${index % 2 ? 'red' : ''}`} aria-hidden="true">{suits[index]}<small>{String(index + 1).padStart(2, '0')}</small></div>
-      <div className="card-heading">
-        <label className="sr-only" htmlFor={`${offer.id}-name`}>Offer {index + 1} 名称</label>
-        <input className="card-title" id={`${offer.id}-name`} value={offer.name} maxLength={32}
-          onChange={e => onUpdate(offer.id, 'name', e.target.value)} />
-        <div className="card-meta">{isBest ? '★ 当前最优手牌' : `OFFER #${String(index + 1).padStart(2, '0')}`} · {cities[offer.input.city]}</div>
-      </div>
-      <div className="card-actions">
-        <button className="card-action" onClick={() => onDuplicate(offer.id)} disabled={!canDuplicate} title="复制这份 Offer" aria-label={`复制 Offer ${index + 1}`}>⧉</button>
-        <button className="card-action" onClick={() => onRemove(offer.id)} disabled={!canRemove} title="移除这份 Offer" aria-label={`移除 Offer ${index + 1}`}>×</button>
-      </div>
-    </div>
-
-    <div className="section-label"><span>01</span> 筹码 · 收入</div>
-    <div className="field-grid">
-      {number('monthlyBase', { step: 500 })}
-      {number('salaryMonths', { unit: '月', step: 0.5 })}
-      {number('annualBonus', { step: 1000 })}
-      {select('city', Object.entries(cities), '工作城市')}
-    </div>
-    <p className="field-help">年终奖只填额外奖金，避免与多薪重复计入。</p>
-    <div className="section-label"><span>02</span> 回合 · 时间</div>
-    <div className="field-grid">
-      {number('weekdayHours', { unit: '小时', max: 24, step: 0.5 })}
-      {number('weekdayDays', { unit: '天', max: 5, step: 0.5 })}
-    </div>
-
-    <details className="advanced-settings">
-      <summary>加上你的「小丑牌」<span>奖金、股权、税费、偏好</span></summary>
-      <div className="advanced-content">
-        <div className="section-label">浮动收入与兑现比例</div>
-        <div className="field-grid">
-          {number('monthlyAllowance')}{number('allowanceMonths', { unit: '月', max: 12 })}
-          {number('bonusFactor', { unit: '×', max: 1, step: 0.05 })}
-          {select('bonusTax', [['separate', '全年一次性奖金单独计税'], ['comprehensive', '并入综合所得']], '奖金计税方式')}
-          {number('signOn')}{number('signFactor', { unit: '×', max: 1, step: 0.05 })}
-          {select('signTax', taxOptions, '签字费计税方式')}
-          {number('stock')}{number('stockFactor', { unit: '×', max: 1, step: 0.05 })}
-          {select('stockTax', equityOptions, '股票计税方式')}
-          {number('option')}{number('optionFactor', { unit: '×', max: 1, step: 0.05 })}
-          {select('optionTax', equityOptions, '期权计税方式')}
-          {number('otherCash')}{number('otherFactor', { unit: '×', max: 1, step: 0.05 })}
-          {select('otherTax', taxOptions, '其他现金计税方式')}
-          {number('benefits')}{number('benefitFactor', { unit: '×', max: 1, step: 0.05 })}
-        </div>
-        <p className="field-help">股票只填本年归属价值；签字费只影响本年。税费按名义金额计算，兑现折扣只用于价值比较。</p>
-        <div className="section-label">五险一金 · 个人承担部分</div>
-        <div className="field-grid">
-          {select('baseMode', [['salary', '按月薪估算并限额'], ['custom', '手动输入缴费基数']], '缴费基数模式')}
-          {number('contribMonths', { unit: '月', max: 12 })}
-          {offer.input.baseMode === 'custom' && <>{number('socialBase')}{number('fundBase')}</>}
-          {['pensionRate', 'medicalRate', 'unemploymentRate', 'otherSocialRate', 'fundRate'].map(field => number(field, { unit: '%', max: 100, step: 0.1 }))}
-          {number('medicalFixed')}
-          {number('socialMin')}{number('socialMax', { cap: true })}{number('fundMin')}{number('fundMax', { cap: true })}
-        </div>
-        <p className="field-help">北京使用 2025–2026 历史参考参数，其他城市仅预填示例比例及零下限，不设上限。请按实际年度与公司口径调整。</p>
-        <div className="section-label">税前扣除 · 全年金额</div>
-        <div className="field-grid">{number('specialDeduction')}{number('otherDeduction')}</div>
-        <div className="section-label">工时与个人偏好</div>
-        <div className="field-grid">
-          {number('weekendDays', { unit: '天', max: 2, step: 0.5 })}
-          {number('weekendHours', { unit: '小时', max: 24, step: 0.5 })}
-          {number('growth', { unit: '×', step: 0.05 })}{number('locationFactor', { unit: '×', step: 0.05 })}
-        </div>
-        <p className="field-help">1 为中性偏好。工作日超出 8 小时的部分按 1.5 倍、周末按 2 倍加权。</p>
-      </div>
-    </details>
-
-    <div className="card-divider" />
-    <button className="play-button" onClick={() => onPlay(offer.id)} disabled={Boolean(error)} aria-pressed={isActive}>
-      {isActive ? '▶ 再次计分' : '▶ 打出这张牌'}<span>{isActive ? '当前计分手牌' : '查看底数 × 倍率'}</span>
-    </button>
-    {error ? <div className="input-error" role="alert"><strong>这张牌还没算好</strong><p>{error}</p></div> : <>
-      <div className="score-row">
-        <div><div className="score-caption">等效税后时薪</div><div className="score-value">{money(r.eqAfterHourly)}<small> / h</small></div></div>
-        <span className={`rating-chip ${isBest ? 'top-rating' : ''}`}>{r.rating.label}</span>
-      </div>
-      <div className="meter" aria-hidden="true"><span style={{ width: `${Math.max(0, Math.min(100, r.eqAfterHourly / Math.max(maxHourly, 1) * 100))}%` }} /></div>
-      <div className="breakdown">
-        {[['名义税前总包', wan(r.nominalTC)], ['预计税后价值', wan(r.afterTaxValue)], ['税后 855 等效', wan(r.eqAfter)], ['实际 / 加权周工时', `${r.wh.actual.toFixed(1)} / ${r.wh.weighted.toFixed(1)} h`]].map(([label, value]) =>
-          <div className="breakdown-row" key={label}><span>{label}</span><strong>{value}</strong></div>)}
-      </div>
-      <details className="result-details"><summary>展开收入与税费明细</summary><div className="breakdown">
-        {[['固定工资', r.salary], ['固定补贴', r.allowance], ['额外奖金', r.bonus], ['签字费', r.sign], ['股票 / 期权', r.stock + r.option],
-          ['其他现金 / 福利', r.other + r.benefits], ['价值折算总包', r.adjustedTC], ['综合所得个税', r.taxComp], ['奖金个税', r.taxBonus],
-          ['股权个税', r.taxEquity], ['个税合计', r.taxTotal], ['养老保险', r.pension], ['医疗保险', r.medical], ['失业保险', r.unemployment],
-          ['其他个人社保', r.otherSocial], ['个人公积金', r.fund], ['个人五险一金合计', r.socialTotal], ['月均税后价值', r.afterTaxValue / 12],
-          ['实际社保月基数', r.appliedSocialBase], ['实际公积金月基数', r.appliedFundBase]].map(([label, value]) =>
-            <div className="breakdown-row" key={label}><span>{label}</span><strong>{money(value)}</strong></div>)}
-      </div></details>
-    </>}
-    <div className="card-bottom" aria-hidden="true">{suits[index]} <span>PLAY YOUR NEXT HAND</span> {suits[index]}</div>
-  </article>;
-}
-
 function MethodDialog({ dialogRef }) {
   return <dialog className="method-dialog" aria-labelledby="rules-title" ref={dialogRef} onClick={e => { if (e.target === e.currentTarget) dialogRef.current.close(); }}>
     <div className="dialog-header"><div><span className="eyebrow">THE RULES</span><h2 id="rules-title">这副牌怎么算？</h2></div>
       <button className="dialog-close" aria-label="关闭计算规则" onClick={() => dialogRef.current.close()}>×</button></div>
     <div className="method-content">
-      <h3>① 先数清筹码</h3><p>名义总包 = 月薪 × 发薪月数 + 补贴 + 奖金 + 签字费 + 本年归属股权 + 其他收入 + 福利。浮动收入再乘以各自的兑现系数，得到价值折算总包。</p>
+      <h3>使用牌桌</h3><p>点击顶部 Offer 卡牌选择要编辑的报价；选中的卡牌会向上抽出。使用排序菜单比较时薪、总包、月薪或工时。点击右侧抽牌堆新增报价，或将抽牌堆拖到牌槽；点击弃牌堆删除当前报价，也可以把任意 Offer 拖进弃牌堆。弃牌后可撤销。键盘用户可以用 Tab 和 Enter 完成同样的操作。</p><p>收入、工时、税费分别在三个编辑页中。蓝色框是底数，红色框是倍率，结果使用完整精度计算。倍率超过该项的常规值，或刚被调高时，会出现分级火焰；火焰只表示数值变化，不代表报价更好。可以在左侧选项关闭动画。</p><h3>① 先数清筹码</h3><p>名义总包 = 月薪 × 发薪月数 + 补贴 + 奖金 + 签字费 + 本年归属股权 + 其他收入 + 福利。浮动收入再乘以各自的兑现系数，得到价值折算总包。</p>
       <h3>② 扣掉税费</h3><p>综合所得使用年度七级税率，扣除 60,000 元基本减除费用、个人五险一金及全年税前扣除。奖金可以单独计税，符合条件的股权可以单独按年度税率计税。税费按名义金额估算，税后价值包含折算后的权益与福利，不等于现金到账。</p>
       <h3>③ 让时间也有价格</h3><p>加权周工时 = 工作日正常工时 + 1.5 × 工作日超出 8 小时的工时 + 2 × 周末工时。</p>
       <div className="formula">税后 855 等效 = 税后价值 × 成长系数 × 生活偏好系数 × 40 ÷ 加权周工时<br /><br />等效税后时薪 = 税后 855 等效 ÷ 2,080</div>
@@ -212,153 +113,331 @@ function MethodDialog({ dialogRef }) {
   </dialog>;
 }
 
-function PixelArt({ kind }) {
-  const drawings = {
-    clock: <><path fill="#ead7a4" d="M12 4h24v4h4v4h4v24h-4v4h-4v4H12v-4H8v-4H4V12h4V8h4z" /><path fill="#374244" d="M20 10h6v14h12v6H20z" /><path fill="#fe5f55" d="M8 8h8v8H8zM32 32h8v8h-8z" /></>,
-    growth: <><path fill="#4bc292" d="M4 28h8v16H4zM18 20h8v24h-8zM32 8h8v36h-8z" /><path fill="#ead7a4" d="M8 10h16V4h16v16h-6v-6h-8v6H12v6H6V16h2z" /></>,
-    home: <><path fill="#fe5f55" d="M20 4h8v4h8v8h8v8H4v-8h8V8h8z" /><path fill="#ead7a4" d="M10 24h28v20H10z" /><path fill="#374244" d="M20 28h8v16h-8zM12 28h4v8h-4zM32 28h4v8h-4z" /></>,
-    coin: <><path fill="#f3b958" d="M12 4h24v4h4v4h4v24h-4v4h-4v4H12v-4H8v-4H4V12h4V8h4z" /><path fill="#bb7437" d="M14 12h20v6H22v4h10v6H22v4h12v6H14v-6h4v-4h-4v-6h4v-4h-4z" /></>,
-    joker: <><path fill="#009dff" d="M4 8h12v4h8v16H12V16H4z" /><path fill="#fe5f55" d="M32 4h12v16h-8v8H24V12h8z" /><path fill="#f3b958" d="M4 4h8v8H4zM36 0h8v8h-8z" /><path fill="#ead7a4" d="M12 24h24v16H12z" /><path fill="#374244" d="M16 28h4v4h-4zM28 28h4v4h-4zM20 36h8v4h-8z" /><path fill="#4bc292" d="M8 40h12v8H8zM28 40h12v8H28z" /></>,
-  };
-  return <svg viewBox="0 0 48 48" aria-hidden="true" shapeRendering="crispEdges">{drawings[kind] || drawings.joker}</svg>;
+
+const UI_KEY = 'offer-deck:table-ui:v3';
+function loadUi() {
+  try {
+    const value = JSON.parse(localStorage.getItem(UI_KEY)) || {};
+    return { activeId: typeof value.activeId === 'string' ? value.activeId : null, animations: value.animations !== false, notes: value.notes === true };
+  } catch { return { activeId: null, animations: true, notes: false }; }
+}
+const timeFields = ['weekdayHours', 'weekdayDays', 'weekendHours', 'weekendDays', 'growth', 'locationFactor'];
+const feeFields = ['baseMode', 'socialBase', 'fundBase', 'contribMonths', 'pensionRate', 'medicalRate', 'unemploymentRate', 'otherSocialRate', 'fundRate', 'medicalFixed', 'socialMin', 'socialMax', 'fundMin', 'fundMax', 'specialDeduction', 'otherDeduction'];
+const tabFor = field => timeFields.includes(field) ? 'time' : feeFields.includes(field) ? 'fees' : 'income';
+
+function Flames({ level }) {
+  return <span className={'fire-layer fire-' + level} aria-hidden="true">
+    {[0, 1, 2].map(i => <svg key={i} className={'flame-sprite flame-' + i} viewBox="0 0 64 48" shapeRendering="crispEdges">
+      <path fill="#e83b25" d="M4 48V28h8V16h8V4h8v16h8V8h8v16h8v8h8v16z" />
+      <path fill="#ff9e24" d="M12 48V32h8V20h8V8h4v20h8v-8h8v16h8v12z" />
+      <path fill="#ffe59a" d="M24 48V36h8V24h4v12h8v12z" />
+    </svg>)}
+  </span>;
 }
 
-function Scoreboard({ offer, factors, turn }) {
-  const r = offer?.result;
-  return <section className="panel scoreboard" aria-label="底数乘倍率计分">
-    <div className="panel-title"><span>本手计分</span><span className="hud-tag">CHIPS × MULT</span></div>
-    <div className="score-hand-name">{offer?.name || '未命名 Offer'}</div>
-    <div className="scoreboard-body" aria-live="polite" aria-atomic="true">
-      <div className="score-equation" key={turn}>
-        <div className="chip-box chips-blue"><span className="chip-label">底数 / Chips</span><strong data-testid="chips" className={factors && scoreNumber(factors.chips).length > 6 ? 'long-number' : ''}>{factors ? scoreNumber(factors.chips) : '—'}</strong><small>税后价值 ÷ 2080</small></div>
-        <span className="multiply-sign" aria-label="乘以">×</span>
-        <div className="chip-box mult-red"><span className="chip-label">倍率 / Mult</span><strong data-testid="mult" className={factors && scoreNumber(factors.mult, 3).length > 6 ? 'long-number' : ''}>{factors ? scoreNumber(factors.mult, 3) : '—'}</strong><small>时间 × 成长 × 生活</small></div>
-      </div>
-      <div className="score-total" key={`total-${turn}`}><span>本手得分</span><div className="summary-value" data-testid="hand-score">{r ? `¥${scoreNumber(r.eqAfterHourly)}` : '—'}<small> / h</small></div><p>等效税后时薪</p></div>
-      <div className="hud-stats"><div><span>实际周工时</span><strong>{r ? r.wh.actual.toFixed(1) : '—'}<small> h</small></strong></div><div><span>855 等效 / 年</span><strong>{r ? wan(r.eqAfter) : '—'}</strong></div></div>
-      {offer?.error && <p className="scoreboard-error">先修正这张牌的输入，才能计分。</p>}
+function ProductCounter({ offer, left, right, title, leftLabel, rightLabel, leftUnit = '元', rightUnit = '×',
+  baseline = 1, leftMax, rightMax, leftStep = 'any', rightStep = 'any', format = money, update,
+  leftValue, rightValue, resultOverride, readOnly = false, notes = false, explanation }) {
+  const a = readOnly ? leftValue : offer.input[left], b = readOnly ? rightValue : offer.input[right];
+  const result = readOnly && Number.isFinite(resultOverride) ? resultOverride : productValue(a, b, leftMax, rightMax);
+  const mult = result === null ? null : Number(b);
+  const previous = useRef(mult);
+  const [flare, setFlare] = useState(0);
+  useEffect(() => {
+    let timer;
+    if (mult !== null && previous.current !== null && mult > previous.current) {
+      setFlare(Math.max(1, multiplierHeat(mult, Math.max(previous.current, .01))));
+      timer = setTimeout(() => setFlare(0), 950);
+    } else setFlare(0);
+    previous.current = mult;
+    return () => clearTimeout(timer);
+  }, [mult]);
+  const heat = Math.max(multiplierHeat(mult ?? NaN, baseline), flare);
+  const operand = (field, value, label, unit, color, max, step) => <div className={'operand ' + color + (color === 'mult-operand' ? ' heat-' + heat : '')} data-heat={color === 'mult-operand' ? heat : undefined}>
+    {color === 'mult-operand' && heat > 0 && <Flames level={heat} />}
+    {readOnly ? <><span className="operand-label">{label}</span><div className="readonly-operand">{Number.isFinite(value) ? scoreNumber(value, color === 'mult-operand' ? 3 : 1) : '—'}<small>{unit}</small></div></> :
+      <><label className="operand-label" htmlFor={offer.id + '-' + field}>{label}</label><div className="operand-input">
+        <input id={offer.id + '-' + field} type="number" min="0" max={max} step={step} value={value}
+          onChange={e => update(field, e.target.value)} /><span>{unit}</span>
+      </div></>}
+  </div>;
+  return <section className="product-counter" aria-label={title + '乘法'} data-product={left || title}>
+    <div className="product-title"><h3>{title}</h3>{heat > 0 && <span className="heat-indicator" aria-label={'火焰等级 ' + heat}>倍率升温 {heat}</span>}</div>
+    <div className="product-equation">
+      {operand(left, a, leftLabel || labels[left], leftUnit, 'chips-operand', leftMax, leftStep)}
+      <span className="equation-sign" aria-label="乘以">×</span>
+      {operand(right, b, rightLabel || labels[right], rightUnit, 'mult-operand', rightMax, rightStep)}
+      <span className="equals-sign" aria-hidden="true">=</span>
+      <output className="product-result" aria-live="polite" data-testid={'product-' + (left || title)}>{result === null ? '—' : format(result)}</output>
     </div>
-    <div className="scoreboard-caption">完整精度计算 · 选择手牌查看得分</div>
+    {notes && explanation && <p className="product-note">{explanation}</p>}
   </section>;
 }
 
-function JokerRack({ offer, factors, onEdit }) {
-  const realized = offer?.result?.nominalTC > 0 ? offer.result.adjustedTC / offer.result.nominalTC : 1;
-  const cards = [
-    { kind: 'clock', name: '时间换算', value: factors ? `×${scoreNumber(factors.time, 3)}` : '—', note: '40 ÷ 加权周工时', field: 'weekendDays', color: 'blue' },
-    { kind: 'growth', name: '成长空间', value: factors ? `×${scoreNumber(factors.growth, 3)}` : '—', note: '你的发展前景', field: 'growth', color: 'green' },
-    { kind: 'home', name: '生活偏好', value: factors ? `×${scoreNumber(factors.location, 3)}` : '—', note: '城市与个人偏好', field: 'locationFactor', color: 'red' },
-    { kind: 'coin', name: '兑现折算', value: offer?.result ? `${Math.round(realized * 100)}%` : '—', note: '已计入蓝色底数', field: 'stockFactor', color: 'gold' },
-    { kind: 'joker', name: '税费结算', value: offer?.result ? wan(offer.result.taxTotal + offer.result.socialTotal) : '—', note: '已从蓝色底数扣除', field: 'specialDeduction', color: 'purple' },
-  ];
-  return <section className="joker-zone" aria-label="当前手牌的小丑牌系数"><div className="zone-label"><h2>你的小丑牌</h2><span>JOKERS 5 / 5 · 点击调整</span></div>
-    <div className="joker-rack">{cards.map(card => <button key={card.kind} className={`joker-card joker-${card.color}`} onClick={() => onEdit(card.field)}>
-      <span className="joker-card-top">{card.name}<small>JOKER</small></span><span className="joker-art"><PixelArt kind={card.kind} /></span>
-      <strong>{card.value}</strong><span className="joker-note">{card.note}</span>
-    </button>)}</div>
+function OfferEditor({ offer, tab, setTab, update, duplicate, canDuplicate, notes, requestFocus }) {
+  const r = offer.result, factors = r ? scoreFactors(r, offer.input) : null;
+  const number = (field, options = {}) => <NumberField key={field} offer={offer} field={field} update={update} {...options} />;
+  const select = (field, choices, label) => <SelectField key={field} offer={offer} field={field} update={update} options={choices} label={label} />;
+  const product = (left, right, title, options = {}) => <ProductCounter key={offer.id + '-' + left} offer={offer} left={left} right={right} title={title} update={update} notes={notes} {...options} />;
+  const tabs = [['income', '收入'], ['time', '工时'], ['fees', '税费']];
+  return <section className="offer-editor" aria-label="当前 Offer 编辑区">
+    <div className="editor-heading">
+      <div className="editor-name"><label className="sr-only" htmlFor={offer.id + '-name'}>Offer 名称</label>
+        <input id={offer.id + '-name'} value={offer.name} maxLength={32} onChange={e => update('name', e.target.value)} placeholder="为这份 Offer 命名" />
+        <span>{cities[offer.input.city]} · {r ? '即时计算' : '输入待完善'}</span></div>
+      <button className="icon-button duplicate-offer" onClick={duplicate} disabled={!canDuplicate} aria-label="复制当前 Offer" title="复制当前 Offer">⧉</button>
+    </div>
+    <div className="editor-tabs" role="tablist" aria-label="Offer 编辑分类">
+      {tabs.map(([value, label], i) => <button key={value} role="tab" id={'tab-' + value} aria-controls={'panel-' + value} aria-selected={tab === value}
+        tabIndex={tab === value ? 0 : -1} onClick={() => setTab(value)} onKeyDown={e => {
+          let next;
+          if (e.key === 'ArrowRight') next = (i + 1) % tabs.length;
+          if (e.key === 'ArrowLeft') next = (i + tabs.length - 1) % tabs.length;
+          if (e.key === 'Home') next = 0;
+          if (e.key === 'End') next = tabs.length - 1;
+          if (next !== undefined) { e.preventDefault(); setTab(tabs[next][0]); requestAnimationFrame(() => document.getElementById('tab-' + tabs[next][0])?.focus()); }
+        }}>{label}</button>)}
+    </div>
+    {offer.error && <div className="input-error" role="alert"><span>{offer.error}</span>{offer.errorField && <button onClick={() => requestFocus(offer.errorField)}>定位输入 ↗</button>}</div>}
+    <div className="editor-body" id={'panel-' + tab} role="tabpanel" aria-labelledby={'tab-' + tab} key={offer.id + '-' + tab}>
+      {tab === 'income' && <>
+        {product('monthlyBase', 'salaryMonths', '固定工资', { leftUnit: '元 / 月', rightUnit: '月', baseline: 12, leftStep: 500, rightStep: .5, format: value => money(value) + ' / 年', explanation: '税前月薪 × 发薪月数。超出 12 薪时倍率持续升温。' })}
+        {product('annualBonus', 'bonusFactor', '额外奖金', { rightMax: 1, rightStep: .05, format: value => money(value) + ' / 年', explanation: '只填没有计入发薪月数的额外奖金，避免重复。个税仍按名义奖金计算。' })}
+        <div className="field-grid compact-fields">{select('city', Object.entries(cities), '工作城市')}{select('bonusTax', [['separate', '奖金单独计税'], ['comprehensive', '并入综合所得']], '奖金计税方式')}</div>
+        <details className="advanced-settings"><summary>补贴、签字费与股权<span>展开</span></summary><div className="advanced-content">
+          {product('monthlyAllowance', 'allowanceMonths', '固定补贴', { leftUnit: '元 / 月', rightUnit: '月', baseline: 12, rightMax: 12, format: value => money(value) + ' / 年' })}
+          {product('signOn', 'signFactor', '签字费兑现', { rightMax: 1, rightStep: .05 })}{select('signTax', taxOptions, '签字费计税方式')}
+          {product('stock', 'stockFactor', '股票兑现', { rightMax: 1, rightStep: .05 })}{select('stockTax', equityOptions, '股票计税方式')}
+          {product('option', 'optionFactor', '期权兑现', { rightMax: 1, rightStep: .05 })}{select('optionTax', equityOptions, '期权计税方式')}
+          {product('otherCash', 'otherFactor', '其他现金兑现', { rightMax: 1, rightStep: .05 })}{select('otherTax', taxOptions, '其他现金计税方式')}
+          {product('benefits', 'benefitFactor', '福利折算', { rightMax: 1, rightStep: .05 })}
+          <p className="field-help">股票填本年归属价值，签字费只计本年。兑现折算影响比较价值，税费按名义收入估算。</p>
+        </div></details>
+      </>}
+      {tab === 'time' && <>
+        {product('weekdayHours', 'weekdayDays', '工作日工时', { leftUnit: '小时 / 天', rightUnit: '天 / 周', leftMax: 24, rightMax: 5, leftStep: .5, rightStep: .5, baseline: 5, format: value => scoreNumber(value) + ' h / 周', explanation: '每天实际工时 × 每周工作天数；增加工作天数会触发一次升温反馈。' })}
+        {product('weekendHours', 'weekendDays', '周末加班', { leftUnit: '小时 / 天', rightUnit: '天 / 周', leftMax: 24, rightMax: 2, leftStep: .5, rightStep: .5, baseline: 1, format: value => scoreNumber(value) + ' h / 周' })}
+        {product('growth', 'locationFactor', '个人偏好', { leftUnit: '×', rightUnit: '×', leftStep: .05, rightStep: .05, format: value => '×' + scoreNumber(value, 3), explanation: '成长与生活偏好均以 1 为中性值。火焰只表示倍率大小，不代表加班或报价更值得选择。' })}
+        <p className="field-help">工作日超过 8 小时的部分按 1.5 倍、周末按 2 倍加权。实际 / 加权周工时：{r ? r.wh.actual.toFixed(1) + ' / ' + r.wh.weighted.toFixed(1) + ' h' : '—'}。</p>
+      </>}
+      {tab === 'fees' && <>
+        <div className="field-grid">{select('baseMode', [['salary', '按月薪估算并限额'], ['custom', '手动输入基数']], '缴费基数')}{number('contribMonths', { unit: '月', max: 12 })}
+          {offer.input.baseMode === 'custom' && <>{number('socialBase')}{number('fundBase')}</>}
+          {['pensionRate', 'medicalRate', 'unemploymentRate', 'otherSocialRate', 'fundRate'].map(field => number(field, { unit: '%', max: 100, step: .1 }))}
+          {number('medicalFixed')}
+        </div>
+        <details className="advanced-settings mini-calculations"><summary>缴费乘法明细<span>展开</span></summary><div className="advanced-content">
+          {[['养老', r?.appliedSocialBase, Number(offer.input.pensionRate) / 100, .08], ['医疗按比例', r?.appliedSocialBase, Number(offer.input.medicalRate) / 100, .02], ['失业', r?.appliedSocialBase, Number(offer.input.unemploymentRate) / 100, .005], ['其他社保', r?.appliedSocialBase, Number(offer.input.otherSocialRate) / 100, 1], ['公积金', r?.appliedFundBase, Number(offer.input.fundRate) / 100, .12]].map(([name, base, rate, baseline]) => <ProductCounter key={name} title={name + '月缴费'} leftLabel="实际月基数" rightLabel="个人比例" leftValue={base} rightValue={rate} resultOverride={r ? base * rate : undefined} readOnly baseline={baseline} format={money} notes={notes} />)}
+          <p className="field-help">医疗固定费用另行加到每月缴费中，再参与全年合计。</p>
+          <ProductCounter title="个人全年缴费" leftLabel="每月个人缴费" rightLabel="缴纳月数" leftValue={r ? r.appliedSocialBase * (Number(offer.input.pensionRate) + Number(offer.input.medicalRate) + Number(offer.input.unemploymentRate) + Number(offer.input.otherSocialRate)) / 100 + Number(offer.input.medicalFixed) + r.appliedFundBase * Number(offer.input.fundRate) / 100 : undefined} rightValue={Number(offer.input.contribMonths)} resultOverride={r?.socialTotal} rightUnit="月" readOnly baseline={12} format={money} />
+        </div></details>
+        <details className="advanced-settings"><summary>缴费上下限与税前扣除<span>展开</span></summary><div className="advanced-content">
+          <div className="field-grid">{number('socialMin')}{number('socialMax', { cap: true })}{number('fundMin')}{number('fundMax', { cap: true })}{number('specialDeduction')}{number('otherDeduction')}</div>
+          <p className="field-help">北京为 2025–2026 历史参数；其他城市比例为示例，请按实际年度与公司口径调整。上下限留空表示未设上限。</p>
+        </div></details>
+      </>}
+    </div>
+    <div className={'result-shelf ' + (r ? '' : 'results-invalid')} aria-live="polite">
+      <div className="main-result"><span>等效税后时薪</span><strong data-testid="hourly-score">{r ? money(r.eqAfterHourly) : '—'}<small> / h</small></strong></div>
+      <div><span>税前总包</span><strong data-testid="nominal-package">{r ? wan(r.nominalTC) : '—'}</strong></div>
+      <div><span>税后价值 / 年</span><strong>{r ? wan(r.afterTaxValue) : '—'}</strong></div>
+    </div>
+    <details className="result-details"><summary>结果明细与时薪换算</summary><div className="result-detail-body">
+      <ProductCounter title="等效时薪" leftLabel="税后价值 ÷ 2080" rightLabel="工时与偏好倍率" leftValue={factors?.chips} rightValue={factors?.mult} resultOverride={factors?.total} readOnly format={value => money(value) + ' / h'} />
+      <div className="breakdown">{[['价值折算总包', r?.adjustedTC], ['个人所得税', r?.taxTotal], ['个人五险一金', r?.socialTotal], ['综合所得个税', r?.taxComp], ['奖金个税', r?.taxBonus], ['股权个税', r?.taxEquity]].map(([label, value]) => <div className="breakdown-row" key={label}><span>{label}</span><strong>{r ? money(value) : '—'}</strong></div>)}</div>
+    </div></details>
   </section>;
+}
+
+function OfferSlot({ offer, index, selected, select, dragHandlers, isDragging }) {
+  return <button className={'offer-slot ' + (selected ? 'is-selected ' : '') + (isDragging ? 'is-dragging' : '')}
+    aria-label={'选择 ' + (offer.name || '未命名 Offer')} aria-pressed={selected} onClick={select} {...dragHandlers}>
+    <span className={'slot-corner ' + (index % 2 ? 'red-suit' : '')}>{suits[index % suits.length]}<small>{index + 1}</small></span>
+    <span className="slot-art" aria-hidden="true"><svg viewBox="0 0 48 48" shapeRendering="crispEdges"><path fill="#009dff" d="M4 8h12v4h8v16H12V16H4z" /><path fill="#fe5f55" d="M32 4h12v16h-8v8H24V12h8z" /><path fill="#f3b958" d="M4 4h8v8H4zM36 0h8v8h-8z" /><path fill="#ead7a4" d="M12 24h24v16H12z" /><path fill="#374244" d="M16 28h4v4h-4zM28 28h4v4h-4zM20 36h8v4h-8z" /><path fill="#4bc292" d="M8 40h12v8H8zM28 40h12v8H28z" /></svg></span>
+    <strong className="slot-name">{offer.name || '未命名 Offer'}</strong><span className="slot-score">{offer.result ? money(offer.result.eqAfterHourly) + ' / h' : '待完善'}</span>
+  </button>;
+}
+
+function SortControl({ onSort }) {
+  const [open, setOpen] = useState(false);
+  const [direction, setDirection] = useState('desc');
+  const container = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = e => { if (!container.current?.contains(e.target)) setOpen(false); };
+    const escape = e => { if (e.key === 'Escape') { setOpen(false); container.current?.querySelector('.sort-trigger')?.focus(); } };
+    document.addEventListener('pointerdown', close); document.addEventListener('keydown', escape);
+    return () => { document.removeEventListener('pointerdown', close); document.removeEventListener('keydown', escape); };
+  }, [open]);
+  return <div className="sort-control" ref={container}>
+    <button className="sort-trigger" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="sort-options">排序 ⇅</button>
+    {open && <div className="sort-popover" id="sort-options" aria-label="排序选项"><div className="sort-direction">
+      {['desc', 'asc'].map(value => <button key={value} aria-pressed={direction === value} onClick={() => setDirection(value)}>{value === 'desc' ? '降序 ↓' : '升序 ↑'}</button>)}
+    </div><div className="sort-criteria">{SORT_OPTIONS.map(([value, label]) => <button key={value} onClick={() => { onSort(value, direction); setOpen(false); }}>按{label}</button>)}</div></div>}
+  </div>;
 }
 
 function downloadText(filename, content) {
   const url = URL.createObjectURL(new Blob([content], { type: 'text/plain;charset=utf-8' }));
-  const a = document.createElement('a');
-  a.href = url; a.download = filename; a.click();
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export default function App() {
   const [offers, setOffers] = useState(loadOffers);
+  const [ui, setUi] = useState(loadUi);
+  const [tab, setTab] = useState('income');
   const [saved, setSaved] = useState(true);
   const [toast, setToast] = useState('');
-  const [activeId, setActiveId] = useState(null);
-  const [scoreTurn, setScoreTurn] = useState(0);
-  const dialogRef = useRef(null);
-  const toastTimer = useRef(null);
-  useEffect(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(offers)); setSaved(true); } catch { setSaved(false); } }, [offers]);
-  useEffect(() => () => clearTimeout(toastTimer.current), []);
-  const notify = message => { setToast(message); clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(''), 2800); };
+  const [discarded, setDiscarded] = useState([]);
+  const [pendingFocus, setPendingFocus] = useState(null);
+  const [drag, setDrag] = useState(null);
+  const dragSession = useRef(null), suppressClick = useRef(false), clickTimer = useRef(null);
+  const dialogRef = useRef(null), toastTimer = useRef(null);
   const evaluated = offers.map(evaluate);
-  const ranked = evaluated.filter(o => o.result).sort((a, b) => b.result.eqAfterHourly - a.result.eqAfterHourly);
-  const best = ranked[0];
-  const active = evaluated.find(o => o.id === activeId) || evaluated[0];
-  const factors = active?.result ? scoreFactors(active.result, active.input) : null;
-  const maxHourly = best?.result.eqAfterHourly ?? 0;
-  function play(id) { setActiveId(id); setScoreTurn(current => current + 1); }
-  function editJoker(field) {
-    const input = document.getElementById(`${active.id}-${field}`);
+  const active = evaluated.find(o => o.id === ui.activeId) || evaluated[0];
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(offers)); localStorage.setItem(UI_KEY, JSON.stringify(ui)); setSaved(true); }
+    catch { setSaved(false); }
+  }, [offers, ui]);
+  useEffect(() => () => { clearTimeout(toastTimer.current); clearTimeout(clickTimer.current); }, []);
+  useEffect(() => {
+    if (!pendingFocus || !active) return;
+    const input = document.getElementById(active.id + '-' + pendingFocus);
     const details = input?.closest('details');
     if (details) details.open = true;
-    input?.focus();
-    input?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'center' });
-  }
-
-  function update(id, field, value) {
-    setOffers(current => current.map(o => o.id !== id ? o : field === 'name' ? { ...o, name: value } :
-      { ...o, input: { ...o.input, [field]: value, ...(field === 'city' && value !== 'custom' ? presetFields(value) : {}) } }));
-  }
+    input?.focus(); setPendingFocus(null);
+  }, [pendingFocus, tab, active?.id]);
+  const notify = message => { setToast(message); clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(''), 6000); };
+  const select = id => { if (!suppressClick.current) setUi(current => ({ ...current, activeId: id })); };
+  const update = (field, value) => setOffers(current => current.map(o => o.id !== active.id ? o : field === 'name' ? { ...o, name: value } :
+    { ...o, input: { ...o.input, [field]: value, ...(field === 'city' && value !== 'custom' ? presetFields(value) : {}) } }));
+  function requestFocus(field) { setTab(tabFor(field)); setPendingFocus(field); }
   function add() {
-    if (offers.length >= MAX_OFFERS) return;
-    setOffers(current => [...current, makeOffer(`新 Offer ${current.length + 1}`, { monthlyBase: 25000, annualBonus: 0 })]);
-    notify('新手牌已入场，填入你的真实 Offer。');
+    if (offers.length >= MAX_OFFERS) return notify('牌槽已满，先弃置一张再抽牌。');
+    let index = 1; while (offers.some(o => o.name === '新 Offer ' + index)) index++;
+    const fresh = makeOffer('新 Offer ' + index, { monthlyBase: 25000, salaryMonths: 12, annualBonus: 0 });
+    setOffers(current => current.length < MAX_OFFERS ? [...current, fresh] : current);
+    setUi(current => ({ ...current, activeId: fresh.id })); setTab('income'); notify('已抽取一份新 Offer。');
   }
-  function duplicate(id) {
-    if (offers.length >= MAX_OFFERS) return;
-    const original = offers.find(o => o.id === id);
-    setOffers(current => [...current, { ...original, id: newId(), name: `${original.name.slice(0, 29)} 副本`, input: { ...original.input } }]);
-    notify('已复制，试试另一组谈薪条件。');
+  function duplicate() {
+    if (!active || offers.length >= MAX_OFFERS) return;
+    const fresh = { id: newId(), name: active.name.slice(0, 29) + ' 副本', input: { ...active.input } };
+    setOffers(current => [...current, fresh]); setUi(current => ({ ...current, activeId: fresh.id })); notify('已复制当前 Offer。');
+  }
+  function discard(id = active?.id) {
+    const index = offers.findIndex(o => o.id === id);
+    if (index < 0) return;
+    const item = offers[index], next = offers[index + 1] || offers[index - 1];
+    setDiscarded(current => [...current, { offer: item, index }]);
+    setOffers(current => current.filter(o => o.id !== id));
+    if (active?.id === id) setUi(current => ({ ...current, activeId: next?.id || null }));
+    notify('已弃置「' + (item.name || '未命名 Offer') + '」。');
+  }
+  function undo() {
+    const item = discarded.at(-1);
+    if (!item || offers.length >= MAX_OFFERS) return;
+    setOffers(current => { const next = [...current]; next.splice(Math.min(item.index, current.length), 0, item.offer); return next; });
+    setDiscarded(current => current.slice(0, -1)); setUi(current => ({ ...current, activeId: item.offer.id })); notify('已恢复这份 Offer。');
+  }
+  function applySort(criterion, direction) {
+    setOffers(current => sortOffers(current.map(evaluate), criterion, direction).map(o => current.find(original => original.id === o.id)));
+    notify('已按' + SORT_OPTIONS.find(([key]) => key === criterion)[1] + (direction === 'desc' ? '降序' : '升序') + '排序。');
   }
   function exportResults() {
-    const text = ['OFFER 牌桌 · 比较结果', '', ...evaluated.flatMap(o => o.error ? [`${o.name}：输入未完善 — ${o.error}`, ''] :
-      [`${o.name} · ${cities[o.input.city]}`, `名义税前总包：${money(o.result.nominalTC)}`, `价值折算总包：${money(o.result.adjustedTC)}`,
-        `个人所得税：${money(o.result.taxTotal)}；个人五险一金：${money(o.result.socialTotal)}`, `预计税后价值：${money(o.result.afterTaxValue)}`,
-        `实际 / 加权周工时：${o.result.wh.actual} / ${o.result.wh.weighted} 小时`, `税后 855 等效：${money(o.result.eqAfter)}`,
-        `等效税后时薪：${money(o.result.eqAfterHourly)} / h · ${o.result.rating.label}`, '']),
-      '基于当前输入及历史参考参数，仅用于 Offer 比较。税后价值包含折算后的权益与福利，不等于现金到账。',
-      '计算方法：https://sherry-roar.github.io/offer-calculate/'];
-    downloadText('Offer牌桌-比较结果.txt', text.join('\n'));
-    notify('战绩已导出为文本。');
+    const content = ['OFFER 牌桌 · 比较结果', '', ...evaluated.flatMap(o => o.error ? [o.name + '：' + o.error, ''] :
+      [o.name + ' · ' + cities[o.input.city], '税前总包：' + money(o.result.nominalTC), '税后价值：' + money(o.result.afterTaxValue),
+       '实际 / 加权周工时：' + o.result.wh.actual + ' / ' + o.result.wh.weighted + ' h', '等效税后时薪：' + money(o.result.eqAfterHourly) + ' / h', '']),
+      '税后价值包含权益与福利。缴费预设为历史参考；请核对实际合同与政策。'];
+    downloadText('Offer牌桌-比较结果.txt', content.join('\n')); notify('比较结果已导出。');
   }
+  const targetAt = (x, y, item) => {
+    const zone = document.elementFromPoint(x, y)?.closest('[data-drop-zone]')?.dataset.dropZone;
+    return item.kind === 'draw' ? (['hand', 'editor'].includes(zone) ? zone : null) : (['discard', 'hand', 'editor'].includes(zone) ? zone : null);
+  };
+  function dragHandlers(item) {
+    return {
+      onPointerDown: e => {
+        if (e.button !== 0 || dragSession.current || (item.kind === 'draw' && offers.length >= MAX_OFFERS)) return;
+        e.currentTarget.setPointerCapture(e.pointerId);
+        dragSession.current = { ...item, pointerId: e.pointerId, x: e.clientX, y: e.clientY, moved: false };
+      },
+      onPointerMove: e => {
+        const session = dragSession.current;
+        if (!session || session.pointerId !== e.pointerId) return;
+        if (!session.moved && Math.hypot(e.clientX - session.x, e.clientY - session.y) < 9) return;
+        session.moved = true;
+        const target = targetAt(e.clientX, e.clientY, session);
+        setDrag({ ...session, currentX: e.clientX, currentY: e.clientY, target });
+        if (!target && e.pointerType !== 'mouse') {
+          if (e.clientY < 45) window.scrollBy(0, -12);
+          else if (e.clientY > innerHeight - 50) window.scrollBy(0, 12);
+        }
+      },
+      onPointerUp: e => {
+        const session = dragSession.current;
+        if (!session || session.pointerId !== e.pointerId) return;
+        if (session.moved) {
+          suppressClick.current = true; clearTimeout(clickTimer.current);
+          clickTimer.current = setTimeout(() => { suppressClick.current = false; }, 160);
+          const target = targetAt(e.clientX, e.clientY, session);
+          if (session.kind === 'draw' && target) add();
+          else if (session.kind === 'offer' && target === 'discard') discard(session.id);
+          else if (session.kind === 'offer' && target) setUi(current => ({ ...current, activeId: session.id }));
+        }
+        dragSession.current = null; setDrag(null);
+        if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+      },
+      onPointerCancel: () => { dragSession.current = null; setDrag(null); },
+      onLostPointerCapture: () => { dragSession.current = null; setDrag(null); },
+    };
+  }
+  const clicked = action => { if (!suppressClick.current) action(); };
+  const lastDiscard = discarded.at(-1)?.offer;
 
-  return <div className="app-shell">
-    <header className="topbar">
-      <a className="brand" href="#" aria-label="Offer 牌桌首页"><span className="brand-mark" aria-hidden="true">♠</span><span>OFFER<span className="brand-sub">牌桌 / THE DECK</span></span></a>
-      <div className="topbar-right"><span className="status-pill"><span className="status-dot" />{saved ? '本地自动保存' : '仅当前会话'}</span>
-        <button className="secondary-button rules-button" onClick={() => dialogRef.current.showModal()}>游戏规则 <span aria-hidden="true">↗</span></button></div>
-    </header>
-
-    <section className="hero-heading">
-      <div><p className="eyebrow">CAREER RUN / 职业牌局</p><h1>你的下一手，<span>值多少？</span></h1></div>
-      <div className="run-badge"><span>比较模式</span><strong>{offers.length} / 4</strong><small>手牌</small></div>
-    </section>
-
-    <main className="layout">
-      <aside className="sidebar" aria-label="Offer 比较总览">
-        <Scoreboard offer={active} factors={factors} turn={scoreTurn} />
-        <section className="panel hand-panel">
-          <div className="panel-title"><span>本局排名</span><span>{offers.length} / {MAX_OFFERS}</span></div>
-          <div className="hand-list">{ranked.map((o, i) => <button className={`hand-row ${i === 0 ? 'winning' : ''} ${active.id === o.id ? 'selected' : ''}`} key={o.id} onClick={() => play(o.id)} aria-label={`选择 ${o.name || '未命名 Offer'}`} aria-pressed={active.id === o.id}>
-            <span className="hand-rank">{i + 1}</span><span className="hand-name">{o.name || '未命名 Offer'}</span><strong>{money(o.result.eqAfterHourly)}</strong></button>)}
-            {evaluated.filter(o => o.error).map(o => <div className="hand-row" key={o.id}><span>!</span><span className="hand-name">{o.name || '未命名 Offer'}</span><small>待完善</small></div>)}
-          </div>
-          <button className="primary-button add-button" onClick={add} disabled={offers.length >= MAX_OFFERS}>＋ 抽一张 Offer</button>
-          <p className="panel-hint">最多 4 张，把选择摆上牌桌。</p>
-        </section>
-        <section className="tip-panel"><span className="tip-icon" aria-hidden="true">✦</span><div><h2>底数 × 倍率 = 回报</h2><p>好手牌，不能只看总包。<br />把时间和生活也算进去。</p></div></section>
-        <button className="secondary-button export-button" onClick={exportResults} disabled={ranked.length === 0}>↓ 导出比较战绩</button>
-        <button className="reset-button" onClick={() => { setOffers(exampleOffers()); notify('已恢复两张示例手牌。'); }}>↻ 恢复示例手牌</button>
-      </aside>
-
-      <section className="table-area" aria-label="编辑 Offer">
-        <JokerRack offer={active} factors={factors} onEdit={editJoker} />
-        <div className="section-heading"><div><span className="eyebrow">YOUR HAND</span><h2>打出你的 Offer</h2></div><span className="table-count">{String(offers.length).padStart(2, '0')} / 04</span></div>
-        <div className="offer-grid">{evaluated.map((offer, index) => <OfferCard key={offer.id} offer={offer} index={index}
-          isBest={best?.id === offer.id} isActive={active.id === offer.id} onPlay={play} maxHourly={maxHourly} onUpdate={update} onDuplicate={duplicate} canDuplicate={offers.length < MAX_OFFERS}
-          onRemove={id => setOffers(current => current.length > 1 ? current.filter(o => o.id !== id) : current)} canRemove={offers.length > 1} />)}</div>
-        <p className="disclaimer">✦ 起始手牌为虚构示例。参数可自行调整；税后价值含权益与福利，排名仅用于当前假设下的比较。</p>
+  return <div className={'app-shell table-layout ' + (!ui.animations ? 'motion-off' : '')}>
+    <aside className="sidebar" aria-label="标题、帮助与选项">
+      <div className="sidebar-brand"><span className="brand-mark" aria-hidden="true">♠</span><div><h1>Offer 牌桌</h1><span>THE OFFER DECK</span></div></div>
+      <p className="side-intro">把选择放上牌桌。<br />一张一张，算清回报。</p>
+      <button className="sidebar-button help-button" onClick={() => dialogRef.current.showModal()}>? 帮助与计算方法</button>
+      <details className="side-options"><summary>选项 <span>⚙</span></summary><div>
+        <label><input type="checkbox" checked={ui.animations} onChange={e => setUi(current => ({ ...current, animations: e.target.checked }))} />计分与火焰动效</label>
+        <label><input type="checkbox" checked={ui.notes} onChange={e => setUi(current => ({ ...current, notes: e.target.checked }))} />显示公式说明</label>
+        <button onClick={exportResults} disabled={offers.length === 0}>↓ 导出比较结果</button>
+        <button onClick={() => { setOffers(exampleOffers()); setDiscarded([]); setUi(current => ({ ...current, activeId: null })); setTab('income'); notify('已恢复两份示例。'); }}>↻ 恢复示例</button>
+      </div></details>
+      <div className="side-bottom"><span className="save-indicator"><i />{saved ? '自动保存在此浏览器' : '存储不可用，仅当前会话'}</span><small>示例与缴费预设仅作参考</small></div>
+    </aside>
+    <main className="playing-table" aria-label="Offer 牌桌">
+      <section className={'hand-zone ' + (drag?.target === 'hand' ? 'drop-ready' : '')} data-drop-zone="hand" aria-label="Offer 牌槽">
+        <div className="hand-heading"><div><h2>你的 Offer</h2><span>{offers.length} / {MAX_OFFERS} 张手牌</span></div><SortControl onSort={applySort} /></div>
+        <div className="offer-hand">{evaluated.map((offer, index) => <OfferSlot key={offer.id} offer={offer} index={index}
+          selected={active?.id === offer.id} select={() => select(offer.id)} dragHandlers={dragHandlers({ kind: 'offer', id: offer.id })}
+          isDragging={drag?.id === offer.id} />)}
+          {offers.length === 0 && <div className="hand-empty">还没有手牌。点击抽牌堆，或拖一张进来。</div>}
+        </div>
+        <p className="hand-hint">点击选牌 · 拖到弃牌堆可删除</p>
       </section>
+      <div className={'editor-drop-zone ' + (drag?.target === 'editor' ? 'drop-ready' : '')} data-drop-zone="editor">
+        {active ? <OfferEditor key={active.id} offer={active} tab={tab} setTab={setTab} update={update} duplicate={duplicate} canDuplicate={offers.length < MAX_OFFERS} notes={ui.notes} requestFocus={requestFocus} /> :
+          <div className="empty-editor"><span aria-hidden="true">♠</span><h2>下一份 Offer，从抽牌开始。</h2><p>抽一张手牌，填入薪资与工时，即可比较。</p><button className="primary-button" onClick={add}>抽一张 Offer</button></div>}
+      </div>
     </main>
-    <footer className="footer"><span>OFFER 牌桌 <span aria-hidden="true">♠ ♥ ♣ ♦</span></span><span>少一点内耗，多一点底牌。</span><span>{saved ? '数据仅保存在此浏览器' : '浏览器存储不可用，离开后数据不会保留'}</span></footer>
+    <aside className="deck-rail" aria-label="抽牌与弃牌">
+      <div className={'pile discard-pile ' + (drag?.target === 'discard' ? 'drop-ready' : '')} data-drop-zone="discard">
+        <button className="deck-action discard-action" disabled={offers.length === 0} onClick={() => clicked(() => discard())} aria-label="弃置当前 Offer">
+          <span className="deck-face"><span className="deck-symbol" aria-hidden="true">×</span><strong>弃牌堆</strong><small>{lastDiscard ? lastDiscard.name : '点击弃置当前牌'}</small></span>
+        </button><span className="pile-caption">或将手牌拖到这里</span>
+        {discarded.length > 0 && <button className="undo-discard" onClick={undo} disabled={offers.length >= MAX_OFFERS}>↶ 撤销弃牌</button>}
+      </div>
+      <div className="pile draw-pile">
+        <button className="deck-action draw-action" disabled={offers.length >= MAX_OFFERS} onClick={() => clicked(add)} {...dragHandlers({ kind: 'draw' })} aria-label="抽取新 Offer">
+          <span className="deck-face"><span className="deck-symbol" aria-hidden="true">♠</span><strong>抽牌堆</strong><small>{offers.length >= MAX_OFFERS ? '牌槽已满' : '+ 新 Offer'}</small></span>
+        </button><span className="pile-caption">点击或拖进牌槽</span>
+      </div>
+    </aside>
     <MethodDialog dialogRef={dialogRef} />
-    {toast && <div className="toast" role="status">{toast}</div>}
+    {toast && <div className="toast" role="status"><span>{toast}</span>{toast.startsWith('已弃置') && <button onClick={undo} disabled={offers.length >= MAX_OFFERS}>撤销</button>}<button className="toast-close" aria-label="关闭提示" onClick={() => setToast('')}>×</button></div>}
+    {drag && <div className="drag-preview" style={{ left: drag.currentX, top: drag.currentY }} aria-hidden="true"><span>{drag.kind === 'draw' ? '♠' : 'J'}</span><strong>{drag.kind === 'draw' ? '新 Offer' : offers.find(o => o.id === drag.id)?.name}</strong></div>}
   </div>;
 }
