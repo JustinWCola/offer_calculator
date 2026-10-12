@@ -96,7 +96,7 @@ function MethodDialog({ dialogRef }) {
     <div className="dialog-header"><div><span className="eyebrow">THE RULES</span><h2 id="rules-title">这副牌怎么算？</h2></div>
       <button className="dialog-close" aria-label="关闭计算规则" onClick={() => dialogRef.current.close()}>×</button></div>
     <div className="method-content">
-      <h3>使用牌桌</h3><p>点击顶部 Offer 卡牌选择要编辑的报价；选中的卡牌会向上抽出。使用排序菜单比较时薪、总包、月薪或工时。点击右侧抽牌堆新增报价，或将抽牌堆拖到牌槽；点击弃牌堆删除当前报价，也可以把任意 Offer 拖进弃牌堆。弃牌后可撤销。键盘用户可以用 Tab 和 Enter 完成同样的操作。</p><p>收入、工时、税费在编辑区并列展示；顶部结果始终可见。蓝色框是底数，红色框是倍率，结果使用完整精度计算。倍率超过该项的常规值，或刚被调高时，会出现分级火焰；火焰只表示数值变化，不代表报价更好。可以在左侧选项关闭动画。</p><h3>① 先数清筹码</h3><p>名义总包 = 月薪 × 发薪月数 + 补贴 + 奖金 + 签字费 + 本年归属股权 + 其他收入 + 福利。浮动收入再乘以各自的兑现系数，得到价值折算总包。</p>
+      <h3>使用牌桌</h3><p>点击顶部 Offer 卡牌选择要编辑的报价；选中的卡牌会向上抽出。使用排序菜单比较时薪、总包、月薪或工时。点击牌槽旁的牌堆新增报价，或将牌堆拖到牌槽；将任意 Offer 拖回牌堆即可删除，编辑区也提供删除按钮。删除后可撤销。键盘用户可以用 Tab 和 Enter 完成同样的操作。</p><p>收入、工时、税费在编辑区并列展示；顶部结果始终可见。蓝色框是底数，红色框是倍率，结果使用完整精度计算。倍率超过该项的常规值，或刚被调高时，会出现分级火焰；火焰只表示数值变化，不代表报价更好。可以在左侧选项关闭动画。</p><h3>① 先数清筹码</h3><p>名义总包 = 月薪 × 发薪月数 + 补贴 + 奖金 + 签字费 + 本年归属股权 + 其他收入 + 福利。浮动收入再乘以各自的兑现系数，得到价值折算总包。</p>
       <h3>② 扣掉税费</h3><p>综合所得使用年度七级税率，扣除 60,000 元基本减除费用、个人五险一金及全年税前扣除。奖金可以单独计税，符合条件的股权可以单独按年度税率计税。税费按名义金额估算，税后价值包含折算后的权益与福利，不等于现金到账。</p>
       <h3>③ 让时间也有价格</h3><p>加权周工时 = 工作日正常工时 + 1.5 × 工作日超出 8 小时的工时 + 2 × 周末工时。</p>
       <div className="formula">税后 855 等效 = 税后价值 × 成长系数 × 生活偏好系数 × 40 ÷ 加权周工时<br /><br />等效税后时薪 = 税后 855 等效 ÷ 2,080</div>
@@ -136,8 +136,8 @@ function ProductCounter({ offer, left, right, title, leftLabel, rightLabel, left
     return () => clearTimeout(timer);
   }, [mult]);
   const heat = Math.max(multiplierHeat(mult ?? NaN, baseline), flare);
-  const operand = (field, value, label, unit, color, max, step) => <div className={'operand ' + color + (color === 'mult-operand' ? ' heat-' + heat : '')} data-heat={color === 'mult-operand' ? heat : undefined}>
-    {color === 'mult-operand' && heat > 0 && <Flame level={heat} />}
+  const operand = (field, value, label, unit, color, max, step) => <div className={'operand ' + color + ' heat-' + heat} data-heat={heat}>
+    {heat > 0 && <Flame level={heat} color={color === 'chips-operand' ? 'blue' : 'red'} />}
     {readOnly ? <><span className="operand-label">{label}</span><div className="readonly-operand">{Number.isFinite(value) ? scoreNumber(value, color === 'mult-operand' ? 3 : 1) : '—'}<small>{unit}</small></div></> :
       <><label className="operand-label" htmlFor={offer.id + '-' + field}>{label}</label><div className="operand-input">
         <input id={offer.id + '-' + field} type="number" min="0" max={max} step={step} value={value}
@@ -157,7 +157,7 @@ function ProductCounter({ offer, left, right, title, leftLabel, rightLabel, left
   </section>;
 }
 
-function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFocus }) {
+function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFocus, discard }) {
   const r = offer.result, factors = r ? scoreFactors(r, offer.input) : null;
   const number = (field, options = {}) => <NumberField key={field} offer={offer} field={field} update={update} {...options} />;
   const select = (field, choices, label) => <SelectField key={field} offer={offer} field={field} update={update} options={choices} label={label} />;
@@ -172,6 +172,7 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
       <div className="editor-name"><label className="sr-only" htmlFor={offer.id + '-name'}>Offer 名称</label>
         <input id={offer.id + '-name'} value={offer.name} maxLength={32} onChange={e => update('name', e.target.value)} placeholder="为这份 Offer 命名" />
         <span>{cities[offer.input.city]} · {r ? '即时计算' : '输入待完善'}</span></div>
+      <button className="icon-button delete-offer" onClick={discard} aria-label="删除当前 Offer" title="删除当前 Offer">×</button>
       <button className="icon-button duplicate-offer" onClick={duplicate} disabled={!canDuplicate} aria-label="复制当前 Offer" title="复制当前 Offer">⧉</button>
     </div>
     {offer.error && <div className="input-error" role="alert"><span>{offer.error}</span>{offer.errorField && <button onClick={() => requestFocus(offer.errorField)}>定位输入 ↗</button>}</div>}
@@ -324,7 +325,7 @@ export default function App() {
   }
   const targetAt = (x, y, item) => {
     const zone = document.elementFromPoint(x, y)?.closest('[data-drop-zone]')?.dataset.dropZone;
-    return item.kind === 'draw' ? (['hand', 'editor'].includes(zone) ? zone : null) : (['discard', 'hand', 'editor'].includes(zone) ? zone : null);
+    return item.kind === 'draw' ? (['hand', 'editor'].includes(zone) ? zone : null) : (['deck', 'hand', 'editor'].includes(zone) ? zone : null);
   };
   function dragHandlers(item) {
     return {
@@ -356,7 +357,7 @@ export default function App() {
           clickTimer.current = setTimeout(() => { suppressClick.current = false; }, 160);
           const target = targetAt(e.clientX, e.clientY, session);
           if (session.kind === 'draw' && target) add();
-          else if (session.kind === 'offer' && target === 'discard') discard(session.id);
+          else if (session.kind === 'offer' && target === 'deck') discard(session.id);
           else if (session.kind === 'offer' && target) setUi(current => ({ ...current, activeId: session.id }));
         }
         dragSession.current = null; setDrag(null);
@@ -367,7 +368,6 @@ export default function App() {
     };
   }
   const clicked = action => { if (!suppressClick.current) action(); };
-  const lastDiscard = discarded.at(-1)?.offer;
 
   return <MotionContext.Provider value={ui.animations}><div className={'app-shell table-layout ' + (!ui.animations ? 'motion-off' : '')}>
     <aside className="sidebar" aria-label="标题、帮助与选项">
@@ -385,31 +385,26 @@ export default function App() {
     <main className="playing-table" aria-label="Offer 牌桌">
       <section className={'hand-zone ' + (drag?.target === 'hand' ? 'drop-ready' : '')} data-drop-zone="hand" aria-label="Offer 牌槽">
         <div className="hand-heading"><div><h2>你的 Offer</h2><span>{offers.length} / {MAX_OFFERS} 张手牌</span></div><SortControl onSort={applySort} /></div>
-        <div className="offer-hand">{evaluated.map((offer, index) => <OfferSlot key={offer.id} offer={offer} index={index}
+        <div className="hand-content"><div className="offer-hand">{evaluated.map((offer, index) => <OfferSlot key={offer.id} offer={offer} index={index}
           selected={active?.id === offer.id} select={() => select(offer.id)} dragHandlers={dragHandlers({ kind: 'offer', id: offer.id })}
           isDragging={drag?.id === offer.id} />)}
           {offers.length === 0 && <div className="hand-empty">还没有手牌。点击抽牌堆，或拖一张进来。</div>}
         </div>
-        <p className="hand-hint">点击选牌 · 拖到弃牌堆可删除</p>
+        <aside className="deck-rail" aria-label="Offer 牌堆">
+          <div className={'pile combined-pile ' + (drag?.target === 'deck' ? 'drop-ready' : '')} data-drop-zone="deck">
+            <button className="deck-action draw-action" disabled={offers.length >= MAX_OFFERS} onClick={() => clicked(add)} {...dragHandlers({ kind: 'draw' })} aria-label="抽取新 Offer">
+              <span className="deck-face"><span className="deck-symbol" aria-hidden="true">♠</span><strong>Offer 牌堆</strong><small>{offers.length >= MAX_OFFERS ? '手牌已满 · 可拖回删除' : '点击或拖出新增'}</small></span>
+            </button>
+            {discarded.length > 0 && <button className="undo-discard" onClick={undo} disabled={offers.length >= MAX_OFFERS}>↶ 撤销删除</button>}
+          </div>
+        </aside></div>
+        <p className="hand-hint">点击选牌 · 从牌堆抽牌 · 拖回牌堆删除</p>
       </section>
       <div className={'editor-drop-zone ' + (drag?.target === 'editor' ? 'drop-ready' : '')} data-drop-zone="editor">
-        {active ? <OfferEditor key={active.id} offer={active} update={update} duplicate={duplicate} canDuplicate={offers.length < MAX_OFFERS} notes={ui.notes} requestFocus={requestFocus} /> :
+        {active ? <OfferEditor key={active.id} offer={active} update={update} duplicate={duplicate} canDuplicate={offers.length < MAX_OFFERS} notes={ui.notes} requestFocus={requestFocus} discard={() => discard()} /> :
           <div className="empty-editor"><span aria-hidden="true">♠</span><h2>下一份 Offer，从抽牌开始。</h2><p>抽一张手牌，填入薪资与工时，即可比较。</p><button className="primary-button" onClick={add}>抽一张 Offer</button></div>}
       </div>
     </main>
-    <aside className="deck-rail" aria-label="抽牌与弃牌">
-      <div className={'pile discard-pile ' + (drag?.target === 'discard' ? 'drop-ready' : '')} data-drop-zone="discard">
-        <button className="deck-action discard-action" disabled={offers.length === 0} onClick={() => clicked(() => discard())} aria-label="弃置当前 Offer">
-          <span className="deck-face"><span className="deck-symbol" aria-hidden="true">×</span><strong>弃牌堆</strong><small>{lastDiscard ? lastDiscard.name : '点击弃置当前牌'}</small></span>
-        </button><span className="pile-caption">或将手牌拖到这里</span>
-        {discarded.length > 0 && <button className="undo-discard" onClick={undo} disabled={offers.length >= MAX_OFFERS}>↶ 撤销弃牌</button>}
-      </div>
-      <div className="pile draw-pile">
-        <button className="deck-action draw-action" disabled={offers.length >= MAX_OFFERS} onClick={() => clicked(add)} {...dragHandlers({ kind: 'draw' })} aria-label="抽取新 Offer">
-          <span className="deck-face"><span className="deck-symbol" aria-hidden="true">♠</span><strong>抽牌堆</strong><small>{offers.length >= MAX_OFFERS ? '牌槽已满' : '+ 新 Offer'}</small></span>
-        </button><span className="pile-caption">点击或拖进牌槽</span>
-      </div>
-    </aside>
     <MethodDialog dialogRef={dialogRef} />
     {toast && <div className="toast" role="status"><span>{toast}</span>{toast.startsWith('已弃置') && <button onClick={undo} disabled={offers.length >= MAX_OFFERS}>撤销</button>}<button className="toast-close" aria-label="关闭提示" onClick={() => setToast('')}>×</button></div>}
     {drag && <div className="drag-preview" style={{ left: drag.currentX, top: drag.currentY }} aria-hidden="true"><span>{drag.kind === 'draw' ? '♠' : 'J'}</span><strong>{drag.kind === 'draw' ? '新 Offer' : offers.find(o => o.id === drag.id)?.name}</strong></div>}

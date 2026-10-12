@@ -5,7 +5,7 @@ export const MotionContext = createContext(true);
 
 // Flame shader: mininxd/Balatro-Button, Apache-2.0. React lifecycle,
 // visibility suspension, resource cleanup and static fallback authored here.
-export default function Flame({ level }) {
+export default function Flame({ level, color = 'red' }) {
   const canvas = useRef(null), enabled = useContext(MotionContext);
   useEffect(() => {
     const node = canvas.current;
@@ -38,7 +38,8 @@ export default function Flame({ level }) {
         gl.viewport(0,0,node.width,node.height); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT); gl.useProgram(program);
         gl.uniform1f(uniform.time, now / 1000); gl.uniform1f(uniform.amount, [0,1.4,3,5][level]);
         gl.uniform4f(uniform.texture_details,0,0,1,1); gl.uniform2f(uniform.image_details,1,1);
-        gl.uniform4f(uniform.colour_1,1,.25,.06,1); gl.uniform4f(uniform.colour_2,1,.9,.35,1); gl.uniform1f(uniform.id,1);
+        gl.uniform4f(uniform.colour_1,...(color === 'blue' ? [0, .616, 1, 1] : [.996, .373, .333, 1]));
+        gl.uniform4f(uniform.colour_2,...(color === 'blue' ? [.25, .8, 1, 1] : [1, .65, .3, 1])); gl.uniform1f(uniform.id,1);
         gl.drawArrays(gl.TRIANGLES,0,6); node.dataset.rendered = 'true';
       }
       frame = requestAnimationFrame(draw);
@@ -51,6 +52,6 @@ export default function Flame({ level }) {
       delete node.dataset.rendered; gl.deleteBuffer(buffer); shaders.forEach(s => gl.deleteShader(s)); gl.deleteProgram(program);
       queueMicrotask(() => { if (!node.isConnected) gl.getExtension('WEBGL_lose_context')?.loseContext(); });
     };
-  }, [level, enabled]);
-  return <span className={'shader-fire fire-' + level} aria-hidden="true"><span className="static-fire" /><canvas ref={canvas} hidden={!enabled} /></span>;
+  }, [level, enabled, color]);
+  return <span className={'shader-fire fire-' + level + ' fire-' + color} aria-hidden="true"><span className="static-fire" /><canvas ref={canvas} hidden={!enabled} /></span>;
 }
