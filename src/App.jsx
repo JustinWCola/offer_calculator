@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { calculate, cityPresets } from './calculator.js';
+import { scoreFactors } from './scoring.js';
 
 const STORAGE_KEY = 'offer-deck:v1';
 const MAX_OFFERS = 4;
@@ -8,6 +9,7 @@ const suits = ['♠', '♥', '♣', '♦'];
 const newId = () => globalThis.crypto?.randomUUID?.() ?? `offer-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 const money = value => new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY', maximumFractionDigits: 0 }).format(value);
 const wan = value => `${(value / 10000).toFixed(1)} 万`;
+const scoreNumber = (value, precision = 1) => Math.abs(value) >= 1000000 ? value.toExponential(1) : value.toLocaleString('en-US', { maximumFractionDigits: precision });
 const defaults = {
   city: 'beijing', monthlyBase: 28000, salaryMonths: 13, monthlyAllowance: 0, allowanceMonths: 12,
   annualBonus: 30000, bonusFactor: 1, bonusTax: 'separate', signOn: 0, signFactor: 1, signTax: 'comprehensive',
@@ -89,12 +91,12 @@ function SelectField({ offer, field, label, options, update, wide = false }) {
 const taxOptions = [['comprehensive', '并入综合所得'], ['none', '本年不计税']];
 const equityOptions = [['equity', '符合条件股权单独计税'], ...taxOptions];
 
-function OfferCard({ offer, index, isBest, maxHourly, onUpdate, onRemove, onDuplicate, canDuplicate, canRemove }) {
+function OfferCard({ offer, index, isBest, isActive, maxHourly, onUpdate, onRemove, onDuplicate, onPlay, canDuplicate, canRemove }) {
   const { result: r, error } = offer;
   const update = (field, value) => onUpdate(offer.id, field, value);
   const number = (field, options = {}) => <NumberField key={field} offer={offer} field={field} update={update} {...options} />;
   const select = (field, options, label) => <SelectField key={field} offer={offer} field={field} update={update} options={options} label={label} />;
-  return <article className={`offer-card ${isBest ? 'is-best' : ''}`} aria-label={`Offer ${index + 1}：${offer.name}`}>
+  return <article className={`offer-card ${isBest ? 'is-best' : ''} ${isActive ? 'is-active' : ''}`} aria-label={`Offer ${index + 1}：${offer.name}`}>
     <div className="card-header">
       <div className={`card-suit ${index % 2 ? 'red' : ''}`} aria-hidden="true">{suits[index]}<small>{String(index + 1).padStart(2, '0')}</small></div>
       <div className="card-heading">
@@ -165,6 +167,9 @@ function OfferCard({ offer, index, isBest, maxHourly, onUpdate, onRemove, onDupl
     </details>
 
     <div className="card-divider" />
+    <button className="play-button" onClick={() => onPlay(offer.id)} disabled={Boolean(error)} aria-pressed={isActive}>
+      {isActive ? '▶ 再次计分' : '▶ 打出这张牌'}<span>{isActive ? '当前计分手牌' : '查看底数 × 倍率'}</span>
+    </button>
     {error ? <div className="input-error" role="alert"><strong>这张牌还没算好</strong><p>{error}</p></div> : <>
       <div className="score-row">
         <div><div className="score-caption">等效税后时薪</div><div className="score-value">{money(r.eqAfterHourly)}<small> / h</small></div></div>
@@ -198,11 +203,60 @@ function MethodDialog({ dialogRef }) {
       <h3>③ 让时间也有价格</h3><p>加权周工时 = 工作日正常工时 + 1.5 × 工作日超出 8 小时的工时 + 2 × 周末工时。</p>
       <div className="formula">税后 855 等效 = 税后价值 × 成长系数 × 生活偏好系数 × 40 ÷ 加权周工时<br /><br />等效税后时薪 = 税后 855 等效 ÷ 2,080</div>
       <p>855 指每天 8 小时、每周 5 天；全年按 52 周比较。加权工时是比较模型，不是加班工资核算，也不包含假期与通勤。</p>
+      <div className="formula">蓝色底数 Chips = 税后价值 ÷ 2080<br />红色倍率 Mult = 40 ÷ 加权周工时 × 成长系数 × 生活偏好系数<br />Chips × Mult = 等效税后时薪</div>
+      <p>牌桌计分只是同一公式的拆分展示。显示值经过取整，最终结果始终按未取整数值计算；税费和兑现折扣已经计入蓝色底数。</p>
       <h3>④ 看牌面，也看自己</h3><p>时薪 ≥200 为「夯」，≥120 为「顶级」，≥70 为「人上人」，≥35 为「NPC」，更低为「拉完了」。沿用参考项目的娱乐分档，仅说明当前假设下的回报；成长和生活偏好由你决定。</p>
       <p>城市缴费参数为历史示例，并非实时政策。北京参考 2025 年社保与 2025–2026 年度公积金，其他城市需自行设置基数上下限。股票单独计税有政策条件；请核对实际合同和适用政策。</p>
       <p className="source-credit">计算方法：<a href="https://sherry-roar.github.io/offer-calculate/" target="_blank" rel="noreferrer">sherry-roar / Offer 等效薪资计算器 ↗</a>（MIT）。界面为原创像素牌桌设计，灵感来自 Balatro。</p>
     </div>
   </dialog>;
+}
+
+function PixelArt({ kind }) {
+  const drawings = {
+    clock: <><path fill="#ead7a4" d="M12 4h24v4h4v4h4v24h-4v4h-4v4H12v-4H8v-4H4V12h4V8h4z" /><path fill="#374244" d="M20 10h6v14h12v6H20z" /><path fill="#fe5f55" d="M8 8h8v8H8zM32 32h8v8h-8z" /></>,
+    growth: <><path fill="#4bc292" d="M4 28h8v16H4zM18 20h8v24h-8zM32 8h8v36h-8z" /><path fill="#ead7a4" d="M8 10h16V4h16v16h-6v-6h-8v6H12v6H6V16h2z" /></>,
+    home: <><path fill="#fe5f55" d="M20 4h8v4h8v8h8v8H4v-8h8V8h8z" /><path fill="#ead7a4" d="M10 24h28v20H10z" /><path fill="#374244" d="M20 28h8v16h-8zM12 28h4v8h-4zM32 28h4v8h-4z" /></>,
+    coin: <><path fill="#f3b958" d="M12 4h24v4h4v4h4v24h-4v4h-4v4H12v-4H8v-4H4V12h4V8h4z" /><path fill="#bb7437" d="M14 12h20v6H22v4h10v6H22v4h12v6H14v-6h4v-4h-4v-6h4v-4h-4z" /></>,
+    joker: <><path fill="#009dff" d="M4 8h12v4h8v16H12V16H4z" /><path fill="#fe5f55" d="M32 4h12v16h-8v8H24V12h8z" /><path fill="#f3b958" d="M4 4h8v8H4zM36 0h8v8h-8z" /><path fill="#ead7a4" d="M12 24h24v16H12z" /><path fill="#374244" d="M16 28h4v4h-4zM28 28h4v4h-4zM20 36h8v4h-8z" /><path fill="#4bc292" d="M8 40h12v8H8zM28 40h12v8H28z" /></>,
+  };
+  return <svg viewBox="0 0 48 48" aria-hidden="true" shapeRendering="crispEdges">{drawings[kind] || drawings.joker}</svg>;
+}
+
+function Scoreboard({ offer, factors, turn }) {
+  const r = offer?.result;
+  return <section className="panel scoreboard" aria-label="底数乘倍率计分">
+    <div className="panel-title"><span>本手计分</span><span className="hud-tag">CHIPS × MULT</span></div>
+    <div className="score-hand-name">{offer?.name || '未命名 Offer'}</div>
+    <div className="scoreboard-body" aria-live="polite" aria-atomic="true">
+      <div className="score-equation" key={turn}>
+        <div className="chip-box chips-blue"><span className="chip-label">底数 / Chips</span><strong data-testid="chips" className={factors && scoreNumber(factors.chips).length > 6 ? 'long-number' : ''}>{factors ? scoreNumber(factors.chips) : '—'}</strong><small>税后价值 ÷ 2080</small></div>
+        <span className="multiply-sign" aria-label="乘以">×</span>
+        <div className="chip-box mult-red"><span className="chip-label">倍率 / Mult</span><strong data-testid="mult" className={factors && scoreNumber(factors.mult, 3).length > 6 ? 'long-number' : ''}>{factors ? scoreNumber(factors.mult, 3) : '—'}</strong><small>时间 × 成长 × 生活</small></div>
+      </div>
+      <div className="score-total" key={`total-${turn}`}><span>本手得分</span><div className="summary-value" data-testid="hand-score">{r ? `¥${scoreNumber(r.eqAfterHourly)}` : '—'}<small> / h</small></div><p>等效税后时薪</p></div>
+      <div className="hud-stats"><div><span>实际周工时</span><strong>{r ? r.wh.actual.toFixed(1) : '—'}<small> h</small></strong></div><div><span>855 等效 / 年</span><strong>{r ? wan(r.eqAfter) : '—'}</strong></div></div>
+      {offer?.error && <p className="scoreboard-error">先修正这张牌的输入，才能计分。</p>}
+    </div>
+    <div className="scoreboard-caption">完整精度计算 · 选择手牌查看得分</div>
+  </section>;
+}
+
+function JokerRack({ offer, factors, onEdit }) {
+  const realized = offer?.result?.nominalTC > 0 ? offer.result.adjustedTC / offer.result.nominalTC : 1;
+  const cards = [
+    { kind: 'clock', name: '时间换算', value: factors ? `×${scoreNumber(factors.time, 3)}` : '—', note: '40 ÷ 加权周工时', field: 'weekendDays', color: 'blue' },
+    { kind: 'growth', name: '成长空间', value: factors ? `×${scoreNumber(factors.growth, 3)}` : '—', note: '你的发展前景', field: 'growth', color: 'green' },
+    { kind: 'home', name: '生活偏好', value: factors ? `×${scoreNumber(factors.location, 3)}` : '—', note: '城市与个人偏好', field: 'locationFactor', color: 'red' },
+    { kind: 'coin', name: '兑现折算', value: offer?.result ? `${Math.round(realized * 100)}%` : '—', note: '已计入蓝色底数', field: 'stockFactor', color: 'gold' },
+    { kind: 'joker', name: '税费结算', value: offer?.result ? wan(offer.result.taxTotal + offer.result.socialTotal) : '—', note: '已从蓝色底数扣除', field: 'specialDeduction', color: 'purple' },
+  ];
+  return <section className="joker-zone" aria-label="当前手牌的小丑牌系数"><div className="zone-label"><h2>你的小丑牌</h2><span>JOKERS 5 / 5 · 点击调整</span></div>
+    <div className="joker-rack">{cards.map(card => <button key={card.kind} className={`joker-card joker-${card.color}`} onClick={() => onEdit(card.field)}>
+      <span className="joker-card-top">{card.name}<small>JOKER</small></span><span className="joker-art"><PixelArt kind={card.kind} /></span>
+      <strong>{card.value}</strong><span className="joker-note">{card.note}</span>
+    </button>)}</div>
+  </section>;
 }
 
 function downloadText(filename, content) {
@@ -216,6 +270,8 @@ export default function App() {
   const [offers, setOffers] = useState(loadOffers);
   const [saved, setSaved] = useState(true);
   const [toast, setToast] = useState('');
+  const [activeId, setActiveId] = useState(null);
+  const [scoreTurn, setScoreTurn] = useState(0);
   const dialogRef = useRef(null);
   const toastTimer = useRef(null);
   useEffect(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(offers)); setSaved(true); } catch { setSaved(false); } }, [offers]);
@@ -224,8 +280,17 @@ export default function App() {
   const evaluated = offers.map(evaluate);
   const ranked = evaluated.filter(o => o.result).sort((a, b) => b.result.eqAfterHourly - a.result.eqAfterHourly);
   const best = ranked[0];
+  const active = evaluated.find(o => o.id === activeId) || evaluated[0];
+  const factors = active?.result ? scoreFactors(active.result, active.input) : null;
   const maxHourly = best?.result.eqAfterHourly ?? 0;
-  const lead = ranked.length >= 2 ? best.result.eqAfterHourly - ranked[1].result.eqAfterHourly : 0;
+  function play(id) { setActiveId(id); setScoreTurn(current => current + 1); }
+  function editJoker(field) {
+    const input = document.getElementById(`${active.id}-${field}`);
+    const details = input?.closest('details');
+    if (details) details.open = true;
+    input?.focus();
+    input?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'center' });
+  }
 
   function update(id, field, value) {
     setOffers(current => current.map(o => o.id !== id ? o : field === 'name' ? { ...o, name: value } :
@@ -262,41 +327,32 @@ export default function App() {
     </header>
 
     <section className="hero-heading">
-      <div><p className="eyebrow">YOUR CAREER. YOUR HAND.</p><h1>打好你的<span>下一手。</span></h1>
-        <p className="hero-description">薪资是筹码，时间是底牌。把每一份 Offer，算个明白。</p></div>
-      <div className="hero-cards" aria-hidden="true"><span className="mini-card">♣<small>TIME</small></span><span className="mini-card">♥<small>LIFE</small></span><span className="mini-card">♠<small>VALUE</small></span></div>
+      <div><p className="eyebrow">CAREER RUN / 职业牌局</p><h1>你的下一手，<span>值多少？</span></h1></div>
+      <div className="run-badge"><span>比较模式</span><strong>{offers.length} / 4</strong><small>手牌</small></div>
     </section>
 
     <main className="layout">
       <aside className="sidebar" aria-label="Offer 比较总览">
-        <section className="panel scoreboard">
-          <div className="panel-title"><span>当前最优手牌</span><span aria-hidden="true">♛</span></div>
-          <div className="scoreboard-body" aria-live="polite" aria-atomic="true">
-            <p className="summary-label">等效税后时薪 / 元</p><div className="summary-value">{best ? Math.round(best.result.eqAfterHourly).toLocaleString('zh-CN') : '—'}<span> / h</span></div>
-            <div className="best-badge">{best ? `♠ ${best.name || '未命名 Offer'}` : '等待有效手牌'}</div>
-            <div className="summary-stat"><span>税后 855 等效</span><strong>{best ? wan(best.result.eqAfter) : '—'}</strong></div>
-            <div className="summary-stat"><span>领先下一张</span><strong>{ranked.length >= 2 ? `${money(lead)} / h` : '—'}</strong></div>
-          </div>
-          <div className="scoreboard-caption">在当前收入、工时与偏好假设下比较</div>
-        </section>
+        <Scoreboard offer={active} factors={factors} turn={scoreTurn} />
         <section className="panel hand-panel">
-          <div className="panel-title"><span>你的手牌</span><span>{offers.length} / {MAX_OFFERS}</span></div>
-          <div className="hand-list">{ranked.map((o, i) => <div className={`hand-row ${i === 0 ? 'winning' : ''}`} key={o.id}>
-            <span className="hand-rank">{i + 1}</span><span className="hand-name">{o.name || '未命名 Offer'}</span><strong>{money(o.result.eqAfterHourly)}</strong></div>)}
+          <div className="panel-title"><span>本局排名</span><span>{offers.length} / {MAX_OFFERS}</span></div>
+          <div className="hand-list">{ranked.map((o, i) => <button className={`hand-row ${i === 0 ? 'winning' : ''} ${active.id === o.id ? 'selected' : ''}`} key={o.id} onClick={() => play(o.id)} aria-label={`选择 ${o.name || '未命名 Offer'}`} aria-pressed={active.id === o.id}>
+            <span className="hand-rank">{i + 1}</span><span className="hand-name">{o.name || '未命名 Offer'}</span><strong>{money(o.result.eqAfterHourly)}</strong></button>)}
             {evaluated.filter(o => o.error).map(o => <div className="hand-row" key={o.id}><span>!</span><span className="hand-name">{o.name || '未命名 Offer'}</span><small>待完善</small></div>)}
           </div>
           <button className="primary-button add-button" onClick={add} disabled={offers.length >= MAX_OFFERS}>＋ 抽一张 Offer</button>
           <p className="panel-hint">最多 4 张，把选择摆上牌桌。</p>
         </section>
-        <section className="tip-panel"><span className="tip-icon" aria-hidden="true">✦</span><div><h2>高总包 ≠ 好手牌</h2><p>让工时、兑现风险和生活偏好<br />一起参与这场计算。</p></div></section>
+        <section className="tip-panel"><span className="tip-icon" aria-hidden="true">✦</span><div><h2>底数 × 倍率 = 回报</h2><p>好手牌，不能只看总包。<br />把时间和生活也算进去。</p></div></section>
         <button className="secondary-button export-button" onClick={exportResults} disabled={ranked.length === 0}>↓ 导出比较战绩</button>
         <button className="reset-button" onClick={() => { setOffers(exampleOffers()); notify('已恢复两张示例手牌。'); }}>↻ 恢复示例手牌</button>
       </aside>
 
       <section className="table-area" aria-label="编辑 Offer">
-        <div className="section-heading"><div><span className="eyebrow">THE PLAYING FIELD</span><h2>把你的选择，摆上桌。</h2></div><span className="table-count">{String(offers.length).padStart(2, '0')} 张手牌</span></div>
+        <JokerRack offer={active} factors={factors} onEdit={editJoker} />
+        <div className="section-heading"><div><span className="eyebrow">YOUR HAND</span><h2>打出你的 Offer</h2></div><span className="table-count">{String(offers.length).padStart(2, '0')} / 04</span></div>
         <div className="offer-grid">{evaluated.map((offer, index) => <OfferCard key={offer.id} offer={offer} index={index}
-          isBest={best?.id === offer.id} maxHourly={maxHourly} onUpdate={update} onDuplicate={duplicate} canDuplicate={offers.length < MAX_OFFERS}
+          isBest={best?.id === offer.id} isActive={active.id === offer.id} onPlay={play} maxHourly={maxHourly} onUpdate={update} onDuplicate={duplicate} canDuplicate={offers.length < MAX_OFFERS}
           onRemove={id => setOffers(current => current.length > 1 ? current.filter(o => o.id !== id) : current)} canRemove={offers.length > 1} />)}</div>
         <p className="disclaimer">✦ 起始手牌为虚构示例。参数可自行调整；税后价值含权益与福利，排名仅用于当前假设下的比较。</p>
       </section>

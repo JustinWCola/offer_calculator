@@ -30,3 +30,16 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## Cubic 11 pixel font
+
+The unmodified font at `src/assets/Cubic11.woff2` is Cubic 11, obtained from
+[TakWolf/fusion-pixel-font](https://github.com/TakWolf/fusion-pixel-font/tree/master/assets/fonts/cubic-11).
+The downloaded file's Git blob SHA is `fa0ab5370dd0058b22acbf77dfc2afef8d0d8543`.
+
+Its complete accompanying license, including Cubic 11, M+ FONTS PROJECT and SIL
+Open Font License notices, is distributed unchanged at
+[`public/fonts/Cubic11-LICENSE.txt`](public/fonts/Cubic11-LICENSE.txt).
+
+Balatro-inspired layout references are documented in `DESIGN.md`. No Balatro
+game sprites, sounds or original game font are distributed with this app.
