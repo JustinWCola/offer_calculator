@@ -513,3 +513,89 @@ body::before{opacity:.7}
 .shader-fire{bottom:16px}.shader-fire.fire-1{top:-42px}.shader-fire.fire-2{top:-46px}.shader-fire.fire-3{top:-50px}
 .shader-fire.fire-1{top:-50px}.shader-fire.fire-2{top:-60px}.shader-fire.fire-3{top:-65px}
 .operand::after{top:-6px;height:10px}
+
+/* Compact offer sheet and persistent sorting controls. */
+.offer-summary{flex:none;background:#1b292c;border-bottom:2px solid #526462;padding:10px 14px}
+.summary-identity{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.summary-identity .editor-name{display:flex;align-items:baseline;gap:10px;min-width:0}
+.summary-identity .editor-name input{width:220px;max-width:100%;font-size:19px}
+.summary-identity .editor-name span{display:block;margin:0;font-size:10px;color:#b5c8b9;white-space:nowrap}
+.summary-actions{display:flex;gap:7px;flex:none}.summary-actions .icon-button{font-size:18px;padding:1px 5px;min-width:28px}
+.summary-metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px 13px}
+.summary-metrics>div{min-width:0}.summary-metrics span{display:block;color:#b3c8bc;font-size:9px;white-space:nowrap}
+.summary-metrics strong{display:block;margin-top:3px;color:#f5f0da;font-size:17px;font-weight:normal;white-space:nowrap}
+.summary-metrics .main-result strong{color:#ffcc6c;font-size:21px}.summary-metrics strong small{font-size:8px;color:#b5c8b9}
+.editor-columns{padding:12px 14px 16px;gap:17px;grid-template-columns:1.12fr .92fr 1fr}
+.editor-column+.editor-column{padding-left:15px}.column-heading{margin-bottom:9px;font-size:10px}.column-heading span{font-size:16px}
+.product-counter{margin:7px 0 12px}
+.product-title{min-height:21px;align-items:baseline;gap:5px}.product-title h3{font-size:11px;white-space:nowrap}
+.product-title .product-result{font-size:13px;line-height:1.3;padding:0;margin:0;color:#ffca62;white-space:nowrap;grid-column:auto}.product-result::before{content:''}
+.product-equation{margin-top:5px;grid-template-columns:minmax(0,1fr) 17px minmax(0,1fr);gap:5px;align-items:end}
+.operand-stack{min-width:0}.operand-caption{display:flex;justify-content:space-between;align-items:baseline;gap:4px;color:#b9cebf;font-size:9px;position:relative;z-index:2;margin-bottom:5px;line-height:1.4;white-space:nowrap}
+.operand-caption>span{color:#91afa0;font-size:8px;flex:none}
+.operand{padding:0;height:35px;min-height:35px;border-radius:4px;box-shadow:0 2px #006ba6;isolation:isolate}
+.mult-operand,.mult-operand.heat-3{box-shadow:0 2px #b43d35}
+.operand::before{border-radius:4px}.operand::after{display:none!important}
+.operand .number-control{position:relative;z-index:2;height:100%;padding:2px 3px}
+.number-control{display:flex;align-items:center;width:100%;min-width:0;gap:3px}
+.number-control input{width:100%;min-width:0;background:transparent;color:inherit;border:0;outline:0;padding:2px 5px;appearance:textfield;font-size:16px;line-height:1.2}
+.number-control input::-webkit-inner-spin-button,.number-control input::-webkit-outer-spin-button{appearance:none;margin:0}
+.number-control input:focus-visible{outline:2px solid #ffe3a0;outline-offset:0;border-radius:2px}
+.operand input{color:white;font-size:23px;text-shadow:1px 2px #0006}
+.chips-operand .number-control{flex-direction:row-reverse}.chips-operand input{text-align:right}.mult-operand input{text-align:left}
+.value-arrows{display:flex;flex-direction:column;gap:1px;flex:none;width:15px;align-self:stretch;justify-content:center}
+.value-arrows button{display:grid;place-items:center;border:0;background:#00000020;color:#fff8df;border-radius:2px;padding:0;font-size:11px;line-height:1;height:13px;min-width:15px}
+.value-arrows button:hover:not(:disabled){background:#ffffff40}.value-arrows button:disabled{opacity:.25}.value-arrows button:focus-visible{outline-width:2px;outline-offset:1px}
+.equation-sign{font-size:21px;align-self:end;line-height:35px}
+.input-wrap{min-height:31px;max-width:none;box-shadow:0 1px #111f21}.input-wrap .number-control{padding:1px 4px}.input-wrap input{font-size:15px;padding:3px 2px}.input-wrap .value-arrows button{height:11px;font-size:10px;color:#bfd2c5}
+.input-suffix{font-size:9px;padding-right:5px}.field-label{font-size:9px;margin-bottom:3px}.field-grid{gap:8px 10px;margin-top:7px}
+.pixel-select{min-height:31px;padding:4px 7px;font-size:10px;box-shadow:0 2px #172629}.pixel-select>span:last-child{font-size:12px}
+.income-column>.field{max-width:245px;margin:10px 0}
+.field-help{font-size:9px;line-height:1.6;margin-top:8px}.product-note{font-size:9px;margin-top:5px}
+.advanced-settings{margin-top:11px;padding-top:4px}.advanced-settings summary,.result-details summary{font-size:10px;padding:4px 0}.advanced-settings summary>span{font-size:8px}.advanced-content{padding-top:5px}
+.text-results{margin:8px 0 5px;font-size:10px;display:grid;gap:5px}
+.text-results>div{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.text-results dt{color:#b9cfc0}.text-results dd{margin:0;color:#ffcd73;text-align:right;white-space:nowrap}
+.result-details>.text-results{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 25px}.result-details{padding:7px 14px 10px}
+.income-table{width:100%;border-collapse:collapse;font-size:9px;table-layout:fixed}.income-table caption{text-align:left;color:#ffcd73;background:#1d2c2f;padding:6px;margin:4px 0;font-size:11px}
+.income-table th{font-weight:normal;text-align:left;color:#96b5a2;padding:5px 3px;font-size:8px}.income-table th:first-child{width:68%}.income-table td{border-top:1px solid #455b54;padding:5px 4px;vertical-align:middle}
+.income-table .product-counter{margin:2px 0 5px}.income-table .product-title{display:block;min-height:0}.income-table .product-title h3{font-size:10px;white-space:normal}.income-table .product-result{display:block;font-size:11px;text-align:right;white-space:normal}
+.income-table .operand-caption{font-size:7px;display:block;overflow:hidden;text-overflow:ellipsis}.income-table .operand-caption span{display:none}.income-table .product-equation{gap:3px;grid-template-columns:minmax(0,1fr) 12px minmax(0,1fr)}
+.income-table .operand{height:30px;min-height:30px}.income-table .operand input{font-size:15px;padding:1px}.income-table .equation-sign{font-size:16px;line-height:30px}.income-table .value-arrows{width:10px}.income-table .value-arrows button{min-width:10px;font-size:9px;height:11px}
+.income-table .pixel-select{font-size:8px;padding:4px;line-height:1.3}.income-table .field-label{display:none}.tax-tag{font-size:9px;color:#acbfb0;line-height:1.5}
+.shader-fire{left:0;right:0;bottom:8px;opacity:1!important;overflow:hidden}.shader-fire.fire-1{top:-29px}.shader-fire.fire-2{top:-37px}.shader-fire.fire-3{top:-43px}
+.static-fire{left:2%;right:2%;bottom:0;height:33px;opacity:1}.fire-blue .static-fire{background:#009dff}.fire-red .static-fire{background:#fe5f55}
+.side-sorting{margin-top:15px;border-top:2px solid #1b292c}.side-sorting summary{display:flex;justify-content:space-between;align-items:center;list-style:none;cursor:pointer;padding:9px 2px;font-size:13px;color:#e4e9d9}.side-sorting summary::-webkit-details-marker{display:none}.side-sorting summary>span{color:#ffca62}
+.sort-settings{display:grid;gap:8px;padding:3px 0 4px}.sort-settings .field-label{font-size:10px}.sort-settings .pixel-select{font-size:11px}.sort-direction{margin:0}.sort-direction button{font-size:10px;padding:5px}.sort-execute{padding:6px;border:2px solid #d29c40;border-radius:4px;background:#e6a136;color:#fff4dc;box-shadow:0 2px #9c6927;font-size:12px}.sort-explanation{font-size:9px;line-height:1.6;color:#a7c0af;margin:0}
+.pixel-check,.side-options label{display:flex;align-items:center;gap:7px;font-size:11px;color:#c8d9cc}
+.sidebar input[type=checkbox]{appearance:none;position:relative;width:17px;height:17px;flex:none;margin:0;border:2px solid #789286;border-radius:3px;box-shadow:0 2px #172528;background:#1b2b2e;cursor:pointer}
+.sidebar input[type=checkbox]:checked{background:#e6a136;border-color:#ffce70}.sidebar input[type=checkbox]:checked::after{content:'';position:absolute;inset:2px;background:#fff4db;clip-path:polygon(0 45%,35% 75%,100% 0,100% 35%,38% 100%,0 70%)}.sidebar input[type=checkbox]:disabled{opacity:.4;cursor:not-allowed}
+.hand-sort-state{font-size:10px;color:#c6d8bc}.offer-hand{position:relative}
+.offer-slot{border:2px solid #d1d8c5;border-radius:4px;background:#e3e5d2;box-shadow:0 2px #849d85,0 3px #163c30;min-height:137px;transform:rotate(-1deg)}
+.offer-slot::before{content:'';position:absolute;inset:3px;border:1px solid #b8c6ad;border-radius:2px;pointer-events:none}
+.offer-slot .slot-art{border:1px solid #aabfae;background:#4b7064;box-shadow:none;position:relative}.slot-name{color:#2c483c}.slot-score{color:#496a55}
+.offer-slot.is-selected{box-shadow:0 2px #bd913e,0 3px #163c30;border-color:#f4c975}.offer-slot:hover{box-shadow:0 2px #a7b68c,0 3px #163c30}
+.offer-slot.insert-before::after{content:'';position:absolute;left:-12px;top:0;bottom:0;width:3px;background:#ffcf72;box-shadow:0 0 0 1px #6c5c33;border-radius:2px}.offer-hand.insert-end::after{content:'';width:3px;height:126px;flex:none;background:#ffcf72;border-radius:2px}
+.combined-pile.delete-ready{border:2px dashed #ffcf72;background:#af6c2633}.combined-pile.delete-ready .deck-action:disabled{opacity:1}.delete-ready .deck-face{background:repeating-linear-gradient(45deg,#fff1 0 3px,transparent 3px 7px),#ab5b3c}
+.combined-pile.delete-hover{border:3px solid #ff7b64;background:#ff5f5533}.delete-hover .deck-face{background:#fe5f55;transform:translateY(-4px)}
+@media(max-width:1250px){
+ .editor-columns{grid-template-columns:repeat(2,minmax(0,1fr))}.summary-metrics{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 15px}.summary-metrics strong{font-size:16px}.summary-metrics .main-result strong{font-size:19px}
+}
+@media(max-width:800px){
+ .sidebar{grid-template-columns:minmax(0,1fr) auto auto auto;gap:7px}.side-sorting{margin:0;border:0}.side-sorting summary{font-size:10px;padding:6px 4px;gap:4px}.side-sorting summary>span{display:none}
+ .side-sorting .sort-settings{position:absolute;right:0;top:calc(100% + 6px);z-index:75;width:235px;padding:12px;border:3px solid #8ba399;background:#2d3b3d;border-radius:5px;box-shadow:0 4px #172c26}
+ .hand-sort-state{font-size:8px}.hand-heading>div{gap:7px}.hand-heading h2{font-size:15px}.hand-heading>div>span{font-size:8px}
+ .offer-summary{padding:8px 10px}.summary-identity{margin-bottom:7px}.summary-identity .editor-name{gap:6px;flex:1;overflow:hidden}.summary-identity .editor-name input{width:150px;font-size:16px}.summary-identity .editor-name span{font-size:8px}.summary-actions{gap:4px}.summary-actions .icon-button{font-size:16px;min-width:23px;padding:1px 3px}
+ .summary-metrics{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 8px}.summary-metrics span{font-size:7px}.summary-metrics strong{font-size:13px}.summary-metrics .main-result strong{font-size:17px}.summary-metrics strong small{font-size:7px}
+ .editor-columns{grid-template-columns:1fr;padding:10px 12px;gap:13px}.editor-column+.editor-column{padding-left:0;padding-top:10px}.product-counter{margin:6px 0 11px}.column-heading{margin-bottom:7px}.product-title h3{font-size:11px}.product-title .product-result{font-size:13px}
+ .operand{height:35px;min-height:35px;padding:0}.operand input{font-size:24px}.operand-caption{font-size:9px}.product-equation{grid-template-columns:minmax(0,1fr) 17px minmax(0,1fr);margin-top:5px}.input-wrap{min-height:31px}.income-table .operand{height:30px;min-height:30px}.income-table .operand input{font-size:17px}
+ .result-details>.text-results{grid-template-columns:1fr}.result-details{padding:7px 12px}.offer-slot{min-height:103px;padding:4px;border-width:2px}.offer-slot::before{inset:2px}.offer-slot.insert-before::after{left:-5px}.offer-hand.insert-end::after{height:94px}
+}
+@media(max-width:360px){
+ .sidebar{gap:4px;padding:6px}.sidebar-button{font-size:8px}.side-sorting summary{font-size:9px;padding:5px 2px}.side-options summary{font-size:9px;padding:5px}.sidebar-brand h1{font-size:13px}.sidebar-brand>div>span{font-size:6px}
+ .summary-identity .editor-name input{width:125px;font-size:14px}.summary-identity .editor-name span{font-size:7px}.summary-metrics strong{font-size:12px}.summary-metrics .main-result strong{font-size:15px}.hand-heading>div>span{font-size:7px}.hand-sort-state{max-width:78px;font-size:7px;text-align:right}
+}
+.operand-caption{margin-bottom:21px}
+.income-table .operand-caption{margin-bottom:17px}
+.detail-heading{font-size:11px;font-weight:normal;color:#ffcf72;margin:13px 0 5px}
+button{touch-action:manipulation}
+.offer-slot,.deck-action{touch-action:none}

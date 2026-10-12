@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sortOffers, multiplierHeat, productValue } from '../src/table-utils.js';
+import { sortOffers, multiplierHeat, productValue, displayedOffers, moveOffer, orderByIds, stepValue } from '../src/table-utils.js';
 
 const offer = (name, hourly, monthly = 10000, hours = 40) => ({ id: name, name, input: { monthlyBase: monthly },
   result: hourly == null ? null : { eqAfterHourly: hourly, afterTaxValue: hourly * 2080, nominalTC: monthly * 12, wh: { actual: hours } } });
@@ -30,4 +30,31 @@ test('fire intensity follows the multiplier relative to its meaningful baseline'
   assert.equal(multiplierHeat(20, 12), 3);
   assert.equal(multiplierHeat(1.3), 2);
   assert.equal(multiplierHeat(NaN), 0);
+});
+
+test('manual snapshots remain fixed on edits while automatic sorting recomputes without changing custom order', () => {
+  const hand = [offer('A', 10), offer('B', 20), offer('C', 30)];
+  const manual = { criterion: 'hourly', direction: 'desc', automatic: false, manualOrder: ['C', 'B', 'A'] };
+  hand[0].result.eqAfterHourly = 40;
+  assert.deepEqual(displayedOffers(hand, manual).map(o => o.id), ['C', 'B', 'A']);
+  assert.deepEqual(displayedOffers(hand, { ...manual, automatic: true }).map(o => o.id), ['A', 'C', 'B']);
+  assert.deepEqual(displayedOffers(hand, { ...manual, criterion: 'custom', automatic: true }).map(o => o.id), ['A', 'B', 'C']);
+  assert.deepEqual(hand.map(o => o.id), ['A', 'B', 'C']);
+});
+
+test('reordering adopts the displayed order, preserves identity, and snapshot additions/deletions remain valid', () => {
+  const hand = [offer('A', 10), offer('B', 20), offer('C', 30)];
+  const sorted = sortOffers(hand, 'hourly');
+  assert.deepEqual(moveOffer(sorted, 'A', 0).map(o => o.id), ['A', 'C', 'B']);
+  assert.deepEqual(moveOffer(sorted, 'C', 2).map(o => o.id), ['B', 'A', 'C']);
+  assert.deepEqual(orderByIds([...hand, offer('D', 40)], ['C', 'B', 'missing', 'A']).map(o => o.id), ['C', 'B', 'A', 'D']);
+  assert.deepEqual(orderByIds(hand.slice(1), ['C', 'B', 'A']).map(o => o.id), ['C', 'B']);
+  assert.equal(moveOffer(hand, 'missing', 0), hand);
+});
+
+test('value arrows respect decimals, blanks, zero and upper limits', () => {
+  assert.equal(stepValue('0.3', 1, .05, 1), .35);
+  assert.equal(stepValue('', 1, 500), 500);
+  assert.equal(stepValue(0, -1, .5), 0);
+  assert.equal(stepValue(5, 1, .5, 5), 5);
 });

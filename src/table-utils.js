@@ -4,6 +4,7 @@ export const SORT_OPTIONS = [
 ];
 
 export function sortOffers(offers, criterion, direction = 'desc') {
+  if (criterion === 'custom') return [...offers];
   const sign = direction === 'asc' ? 1 : -1;
   const values = { hourly: 'eqAfterHourly', net: 'afterTaxValue', package: 'nominalTC' };
   const value = offer => criterion === 'monthly' ? (String(offer.input.monthlyBase ?? '').trim() === '' ? null : Number(offer.input.monthlyBase)) :
@@ -16,6 +17,33 @@ export function sortOffers(offers, criterion, direction = 'desc') {
     if (!aValid) return a.index - b.index;
     return sign * (av - bv) || a.index - b.index;
   }).map(({ offer }) => offer);
+}
+
+// Canonical offers retain the user's custom order. Manual sorting is a snapshot;
+// automatic sorting is derived from current values and never rewrites that order.
+export function orderByIds(offers, ids = []) {
+  const rank = new Map(ids.map((id, index) => [id, index]));
+  return offers.map((offer, index) => ({ offer, index })).sort((a, b) =>
+    (rank.get(a.offer.id) ?? ids.length + a.index) - (rank.get(b.offer.id) ?? ids.length + b.index)
+  ).map(({ offer }) => offer);
+}
+
+export function displayedOffers(offers, settings) {
+  if (settings.criterion === 'custom') return offers;
+  return settings.automatic ? sortOffers(offers, settings.criterion, settings.direction) : orderByIds(offers, settings.manualOrder);
+}
+
+export function moveOffer(offers, id, index) {
+  const from = offers.findIndex(offer => offer.id === id);
+  if (from < 0) return offers;
+  const next = [...offers], [offer] = next.splice(from, 1);
+  next.splice(Math.max(0, Math.min(next.length, index)), 0, offer);
+  return next;
+}
+
+export function stepValue(raw, delta, step = 1, max = Number.MAX_SAFE_INTEGER) {
+  const value = String(raw ?? '').trim() === '' ? 0 : Number(raw);
+  return Math.min(max, Math.max(0, Number(((Number.isFinite(value) ? value : 0) + delta * step).toFixed(6))));
 }
 
 export function multiplierHeat(value, baseline = 1) {
