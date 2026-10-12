@@ -43,3 +43,7 @@ Open Font License notices, is distributed unchanged at
 
 Balatro-inspired layout references are documented in `DESIGN.md`. No Balatro
 game sprites, sounds or original game font are distributed with this app.
+
+## Balatro-Button pixel flame shader
+
+`src/shaders/flame.frag` is from [mininxd/Balatro-Button](https://github.com/mininxd/Balatro-Button), licensed under Apache License 2.0. The shader algorithm is retained; `src/Flame.jsx` provides a new React renderer with visibility suspension, reduced-motion handling, resource cleanup and fallback. Full license: [public/licenses/Balatro-Button-APACHE-2.0.txt](public/licenses/Balatro-Button-APACHE-2.0.txt). No upstream fonts or game sprites are included.
