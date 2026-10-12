@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 export default function SelectField({ offer, field, label, options, update, wide = false }) {
   const id = `${offer.id}-${field}`, button = useRef(null), popup = useRef(null), anchor = useRef(null);
   const [open, setOpen] = useState(false), [active, setActive] = useState(0), [position, setPosition] = useState({});
-  const selected = Math.max(0, options.findIndex(([value]) => value === offer.input[field]));
+  const selected = Math.max(0, options.findIndex(([value]) => String(value) === String(offer.input[field])));
   function show() {
     const rect = button.current.getBoundingClientRect(), height = Math.min(options.length * 38 + 12, 260);
     anchor.current = rect;

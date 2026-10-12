@@ -599,3 +599,46 @@ body::before{opacity:.7}
 .detail-heading{font-size:11px;font-weight:normal;color:#ffcf72;margin:13px 0 5px}
 button{touch-action:manipulation}
 .offer-slot,.deck-action{touch-action:none}
+
+/* Each pay group has one shared header and inline expandable rows. */
+.shared-income-table{width:100%;border-collapse:collapse;table-layout:fixed;margin:3px 0 14px;font-size:10px}
+.shared-income-table caption{text-align:left;color:#ffcc73;font-size:12px;padding:4px 0 6px}
+.shared-income-table thead th{font-size:8px;font-weight:normal;color:#a4bdad;text-align:left;padding:6px 4px;background:#203034;border-top:1px solid #52685d;border-bottom:1px solid #52685d;white-space:nowrap}
+.shared-income-table tbody th{padding:11px 5px 10px 0;text-align:left;font-weight:normal;vertical-align:middle;color:#e0e7d7}
+.shared-income-table tbody th>span{display:block;font-size:10px}.shared-income-table output{display:block;font-size:10px;color:#ffcd73;margin-top:5px;overflow-wrap:anywhere}
+.shared-income-table td{padding:13px 5px 11px;vertical-align:middle;border-bottom:1px solid #4b6155}
+.shared-income-table tbody th{border-bottom:1px solid #4b6155}
+.shared-income-table .operand{height:35px;min-height:35px}.shared-income-table .operand input{font-size:20px;padding:2px 3px}
+.monthly-income-table thead th:first-child{width:35%}.monthly-income-table thead th:nth-child(2){width:41%}.monthly-income-table thead th:last-child{width:24%}
+.annual-income-table thead th:first-child{width:24%}.annual-income-table thead th:nth-child(2){width:31%}.annual-income-table thead th:nth-child(3){width:18%}.annual-income-table thead th:last-child{width:27%}
+.annual-income-table .operand input{font-size:17px}.annual-income-table .value-arrows{width:11px}.annual-income-table .value-arrows button{min-width:11px;font-size:9px}
+.income-mult-cell{position:relative}.row-multiply{position:absolute;left:-4px;top:50%;transform:translateY(-50%);z-index:3;color:#fe5f55;font-size:15px}
+.income-tax-cell .field-label{display:none}.income-tax-cell .pixel-select{font-size:8px;padding:4px 3px;min-height:35px}.income-tax-cell .pixel-select>span:last-child{font-size:10px}
+.shared-income-table tfoot td{border:0;padding:5px 0 3px}.income-expand{border:0;border-radius:3px;background:#233436;color:#b8d2bd;font-size:10px;padding:6px 7px;width:100%;text-align:left}
+.income-expand:hover{background:#3b514d;color:#ffcf78}.income-expand[aria-expanded=true]{color:#ffcf78}
+.preference-fields{margin:15px 0 12px}.preference-fields .field-label{font-size:10px}.preference-fields .pixel-select{font-size:10px}
+.rating-stamp{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;margin:0 10px 0 0;min-width:82px;padding:3px 8px;border:3px double currentColor;border-radius:3px;color:#ffca62;background:#23342d;box-shadow:1px 2px #121e1f;transform:rotate(-9deg);line-height:1.15}
+.rating-stamp>span{font-size:7px;letter-spacing:1px}.rating-stamp>strong{font-size:23px;font-weight:normal;text-shadow:1px 2px #10201c;white-space:nowrap}.rating-legend{color:#ffcc5c;background:#493b20}.rating-top{color:#ff8f74;background:#432b28}.rating-good{color:#75d0a0;background:#253f34}.rating-normal{color:#9fc3d2;background:#253b43}.rating-low{color:#e69bb1;background:#3c2934}
+.sidebar-offer-count{display:flex;align-items:baseline;justify-content:space-between;gap:7px;padding:6px 9px;margin:-9px 0 12px;border:2px solid #1a292b;border-radius:4px;background:#233337;color:#b7c8bb;font-size:10px;box-shadow:inset 0 1px #49605a}.sidebar-offer-count strong{font-size:24px;font-weight:normal;color:#ffcd72;line-height:1.1}.sidebar-offer-count small{font-size:11px;color:#99b2a3}
+.hand-row{grid-column:2;grid-row:1;display:grid;grid-template-columns:minmax(0,1fr) 100px;gap:20px;align-items:center;min-width:0;min-height:0}
+.hand-row .hand-zone{grid-column:1;grid-row:1;height:100%;display:flex;align-items:center;padding:17px 20px;min-width:0}
+.hand-row .offer-hand{width:100%;height:100%;padding:20px 0;min-height:0}
+.hand-row .deck-rail{grid-column:2;grid-row:1;position:static;align-self:center}
+@media(max-width:1250px){.shared-income-table .operand input{font-size:20px}.annual-income-table .operand input{font-size:17px}.hand-row{grid-template-columns:minmax(0,1fr) 90px;gap:15px}}
+@media(max-width:800px){
+ .table-layout{grid-template-rows:auto 152px minmax(0,1fr)}
+ .sidebar{grid-template-columns:minmax(0,1fr) auto auto auto;gap:6px}.sidebar-offer-count{grid-column:1/-1;grid-row:2;margin:0;padding:2px 7px;border-width:1px;font-size:8px}.sidebar-offer-count strong{font-size:14px}.sidebar-offer-count small{font-size:9px}
+ .hand-row{grid-column:1;grid-row:2;grid-template-columns:minmax(0,1fr) 64px;gap:12px;align-items:center}.hand-row .hand-zone{padding:13px 7px 6px}.hand-row .offer-hand{height:100%;padding:11px 0 5px}.hand-row .deck-rail{grid-column:2;grid-row:1}
+ .hand-row .offer-slot{flex-basis:76px}.hand-row .combined-pile .deck-action{height:98px}
+ .rating-stamp{min-width:55px;margin-right:3px;padding:2px 4px;border-width:2px}.rating-stamp>span{font-size:5px;letter-spacing:0}.rating-stamp>strong{font-size:16px}
+ .summary-identity .editor-name input{width:130px}.summary-identity .editor-name{gap:4px}.summary-actions{gap:3px}.summary-identity .editor-name span{font-size:8px}
+ .shared-income-table{margin-bottom:12px}.shared-income-table caption{font-size:11px}.shared-income-table .operand input{font-size:20px}.annual-income-table .operand input{font-size:17px}.shared-income-table thead th{font-size:8px;padding:5px 3px}.shared-income-table td{padding:13px 4px 11px}.shared-income-table tbody th>span{font-size:10px}.shared-income-table output{font-size:9px}
+}
+@media(max-width:360px){
+ .table-layout{grid-template-rows:auto 145px minmax(0,1fr)}.hand-row{grid-template-columns:minmax(0,1fr) 56px;gap:10px}.hand-row .hand-zone{padding-left:5px;padding-right:5px}
+ .summary-identity .editor-name input{width:109px;font-size:13px}.summary-identity .editor-name span{font-size:7px}.rating-stamp{min-width:48px;padding:2px}.rating-stamp>strong{font-size:14px}.rating-stamp>span{font-size:5px}.summary-actions .icon-button{min-width:19px;padding:1px 2px;font-size:14px}
+ .shared-income-table .operand input{font-size:18px}.annual-income-table .operand input{font-size:15px}.shared-income-table thead th{font-size:7px}.shared-income-table tbody th>span{font-size:9px}.shared-income-table output{font-size:8px}.income-tax-cell .pixel-select{font-size:7px}.income-tax-cell .pixel-select>span:last-child{font-size:8px}
+}
+.monthly-income-table thead th:first-child{width:34%}.monthly-income-table thead th:nth-child(2),.monthly-income-table thead th:last-child{width:33%}
+.annual-income-table thead th:first-child{width:24%}.annual-income-table thead th:nth-child(2),.annual-income-table thead th:nth-child(3){width:25%}.annual-income-table thead th:last-child{width:26%}
+@media(max-width:800px){.shared-income-table .operand input{font-size:18px}.annual-income-table .operand input{font-size:15px}}
