@@ -657,3 +657,53 @@ button{touch-action:manipulation}
 .sort-execute{min-height:33px}
 @media(max-width:800px){.sort-modes button{min-height:36px;font-size:12px}.sort-direction button,.sort-execute{min-height:35px}}
 .fees-column>.deduction-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+/* Offer Joker: compact hand, aligned income counters and bottom utilities. */
+.table-layout{grid-template-rows:166px minmax(0,1fr)}
+.sidebar-brand h1{font-size:20px;white-space:nowrap}.sidebar-brand>div>span{font-size:8px}
+.sidebar-offer-count{margin:14px 0 5px}
+.sidebar-actions{margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:9px;padding-top:18px}
+.sidebar-actions .sidebar-button{padding:9px 3px;font-size:13px;min-height:36px}
+.options-button{background:#f6a000;border-color:#ffbe39;box-shadow:0 4px #a66a00;text-shadow:1px 2px #925c00}.options-button:hover{background:#ffb21e}
+.side-bottom{margin-top:12px;padding-top:0}.side-bottom small{font-size:8px}
+.sort-modes{grid-template-columns:repeat(2,minmax(0,1fr))}
+.hand-row .hand-zone{padding:8px 14px}.hand-row .offer-hand{padding:12px 0 5px;gap:13px}
+.offer-slot{min-height:115px;width:89px;flex-basis:89px;padding:6px 4px}.offer-slot .slot-art{width:45px;height:45px;margin:3px 0 6px}.slot-art svg{width:38px;height:38px}.slot-name{font-size:11px}.slot-score{font-size:9px}
+.hand-row .combined-pile .deck-action{height:114px}
+.offer-hand.is-dense{gap:8px}.offer-hand.is-dense .offer-slot{width:72px;flex:0 0 72px}.offer-hand.is-dense .offer-slot+.offer-slot{margin-left:min(0px,calc((100% - 72px)/(var(--offer-count) - 1) - 80px))}
+.offer-slot.is-selected{z-index:2}.offer-slot:hover,.offer-slot:focus-visible{z-index:3}
+.operand-caption{margin-bottom:5px}
+.shared-income-table caption{padding-bottom:8px}.shared-income-table caption>span{float:left}.shared-income-table caption>strong{float:right;color:#ffcf75;font-size:13px;font-weight:normal}.shared-income-table caption small{font-size:8px;color:#afc5b4}
+.annual-income-table thead th:first-child{width:34%}.annual-income-table thead th:nth-child(2),.annual-income-table thead th:nth-child(3){width:33%}
+.annual-income-table .operand input{font-size:20px}.annual-income-table .value-arrows{width:15px}.annual-income-table .value-arrows button{min-width:15px;font-size:11px}
+.income-item-name{display:flex;align-items:center;flex-wrap:wrap;gap:4px;color:#e0e7d7;font-size:10px}
+.tax-symbol-field{display:inline-flex;flex:none;position:relative}
+.tax-symbol{display:inline-grid;place-items:center;flex:none;width:22px;height:22px;padding:0;border:1px solid #769082;border-radius:3px;background:#263b35;color:#e9c889;font-size:10px;box-shadow:0 1px #152825}
+.tax-symbol:hover,.tax-symbol[aria-expanded=true]{background:#526f60;color:#ffe8a9;border-color:#f3c76d}.tax-symbol-static{color:#9ab5a2;font-size:9px;cursor:default}
+.options-dialog{width:min(380px,calc(100vw - 28px))}.options-dialog .dialog-header h2{margin:0;font-size:22px}
+.options-content{display:grid;gap:17px;padding:23px;font-size:14px}.options-content label{display:flex;align-items:center;gap:10px;color:#d3e1d4}
+.options-content>button{padding:9px 12px;text-align:left;border:2px solid #6e8880;border-radius:5px;color:#e6e9d4;background:#405857;box-shadow:0 3px #1d3131;font-size:13px}
+.options-content input[type=checkbox]{appearance:none;position:relative;width:19px;height:19px;flex:none;margin:0;border:2px solid #789286;border-radius:3px;box-shadow:0 2px #172528;background:#1b2b2e;cursor:pointer}
+.options-content input[type=checkbox]:checked{background:#e6a136;border-color:#ffce70}.options-content input[type=checkbox]:checked::after{content:'';position:absolute;inset:2px;background:#fff4db;clip-path:polygon(0 45%,35% 75%,100% 0,100% 35%,38% 100%,0 70%)}
+@media(max-width:1250px){.sidebar-brand h1{font-size:17px}.sidebar-brand>div>span{font-size:7px}.sidebar-actions .sidebar-button{font-size:11px}}
+@media(max-width:800px){
+ .table-layout{grid-template-rows:auto 124px minmax(0,1fr);padding-bottom:57px}
+ .sidebar{grid-template-columns:minmax(0,1fr) auto auto;gap:8px;padding:8px}.sidebar-brand h1{font-size:17px}.sidebar-brand>div>span{font-size:7px}
+ .sidebar-offer-count{grid-row:auto;grid-column:auto;margin:0;padding:4px 7px;font-size:7px;gap:8px}.sidebar-offer-count strong{font-size:17px}.sidebar-offer-count small{font-size:8px}
+ .sidebar-actions{position:fixed;left:10px;right:10px;bottom:9px;z-index:40;margin:0;padding:0;display:flex;justify-content:flex-end;gap:9px}
+ .sidebar-actions .sidebar-button{width:85px;min-height:35px;font-size:12px;padding:6px}
+ .hand-row .hand-zone{padding:5px 6px}.hand-row .offer-hand{padding:10px 0 2px;gap:9px}
+ .offer-slot{min-height:95px;flex-basis:72px}.offer-slot .slot-art{width:35px;height:35px;margin:2px 0 5px}.offer-slot .slot-art svg{width:30px;height:30px}.slot-name{font-size:10px}.slot-score{font-size:8px}
+ .hand-row .combined-pile .deck-action{height:92px}.offer-hand.is-dense .offer-slot{width:60px;flex-basis:60px}.offer-hand.is-dense .offer-slot+.offer-slot{margin-left:min(0px,calc((100% - 60px)/(var(--offer-count) - 1) - 68px))}
+ .offer-hand.is-dense .slot-corner{display:block}.offer-hand.is-dense .slot-name{font-size:9px}.offer-hand.is-dense .slot-score{font-size:7px}
+ .operand-caption{margin-bottom:5px}.annual-income-table .operand input{font-size:18px}.annual-income-table .value-arrows{width:15px}.annual-income-table .value-arrows button{min-width:15px;font-size:11px}
+ .shared-income-table caption>strong{font-size:12px}.tax-symbol{width:20px;height:20px;font-size:9px}
+ .toast{bottom:59px}
+}
+@media(max-width:360px){
+ .table-layout{grid-template-rows:auto 117px minmax(0,1fr)}.sidebar-brand h1{font-size:14px}.sidebar-brand>div>span{font-size:6px}.sidebar-offer-count{padding:3px 5px;gap:5px}.sidebar-offer-count strong{font-size:15px}
+ .side-sorting summary{font-size:9px}.shared-income-table caption>span{font-size:9px}.shared-income-table caption>strong{font-size:11px}.annual-income-table .operand input{font-size:18px}
+ .offer-hand.is-dense .offer-slot{width:56px;flex-basis:56px}.offer-hand.is-dense .offer-slot+.offer-slot{margin-left:min(0px,calc((100% - 56px)/(var(--offer-count) - 1) - 64px))}
+}
+.side-bottom{margin-top:auto;padding-top:15px}.sidebar-actions{margin-top:9px;padding-top:0}
+@media(max-width:800px){.sidebar-actions{margin-top:0}}

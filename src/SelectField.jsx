@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-export default function SelectField({ offer, field, label, options, update, wide = false }) {
+export default function SelectField({ offer, field, label, options, update, wide = false, compact = false }) {
   const id = `${offer.id}-${field}`, button = useRef(null), popup = useRef(null), anchor = useRef(null);
   const [open, setOpen] = useState(false), [active, setActive] = useState(0), [position, setPosition] = useState({});
   const selected = Math.max(0, options.findIndex(([value]) => String(value) === String(offer.input[field])));
@@ -37,10 +37,10 @@ export default function SelectField({ offer, field, label, options, update, wide
     } else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (open) choose(active); else show(); }
     else if (e.key === 'Escape' || e.key === 'Tab') setOpen(false);
   };
-  return <div className={`field ${wide ? 'field-wide' : ''}`}>
-    <label className="field-label" id={id + '-label'} htmlFor={id}>{label}</label>
-    <button id={id} ref={button} className="pixel-select" role="combobox" aria-labelledby={id + '-label'} aria-expanded={open} aria-haspopup="listbox" aria-controls={open ? id + '-options' : undefined} aria-activedescendant={open ? id + '-option-' + active : undefined} onKeyDown={keyboard} onClick={() => open ? setOpen(false) : show()}>
-      <span>{options[selected][1]}</span><span aria-hidden="true">▾</span>
+  return <div className={`field ${wide ? 'field-wide' : ''} ${compact ? 'tax-symbol-field' : ''}`}>
+    <label className={compact ? 'sr-only' : 'field-label'} id={id + '-label'} htmlFor={id}>{label}</label>
+    <button id={id} ref={button} className={compact ? 'tax-symbol' : 'pixel-select'} title={compact ? (label + '：' + options[selected][1]) : undefined} role="combobox" aria-labelledby={id + '-label'} aria-expanded={open} aria-haspopup="listbox" aria-controls={open ? id + '-options' : undefined} aria-activedescendant={open ? id + '-option-' + active : undefined} onKeyDown={keyboard} onClick={() => open ? setOpen(false) : show()}>
+      {compact ? <><span aria-hidden="true">{{ separate: '单', equity: '股', comprehensive: '综', none: '免' }[options[selected][0]]}</span><span className="sr-only">{options[selected][1]}</span></> : <><span>{options[selected][1]}</span><span aria-hidden="true">▾</span></>}
     </button>
     {open && createPortal(<div ref={popup} className="pixel-options" style={position} id={id + '-options'} role="listbox" aria-labelledby={id + '-label'}>
       {options.map(([value, title], index) => <div key={value} id={id + '-option-' + index} role="option" aria-selected={index === selected} className={index === active ? 'active' : ''} onPointerMove={() => setActive(index)} onPointerDown={e => e.preventDefault()} onClick={() => choose(index)}><span>{title}</span><span>{index === selected ? '◆' : ''}</span></div>)}

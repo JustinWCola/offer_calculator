@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sortOffers, productHeat, configureSorting, productValue, displayedOffers, moveOffer, orderByIds, stepValue } from '../src/table-utils.js';
+import { sortOffers, productHeat, configureSorting, productValue, displayedOffers, moveOffer, orderByIds, stepValue, migrateManualOrder, incomeTotals } from '../src/table-utils.js';
 
 const offer = (name, hourly, monthly = 10000, hours = 40) => ({ id: name, name, input: { monthlyBase: monthly },
   result: hourly == null ? null : { eqAfterHourly: hourly, afterTaxValue: hourly * 2080, nominalTC: monthly * 12, wh: { actual: hours } } });
@@ -94,4 +94,23 @@ test('custom mode remembers the last metric and returning to metric mode does no
   const changedRule = configureSorting(hand, manual, { criterion: 'hourly' });
   assert.deepEqual(displayedOffers(hand, changedRule).map(o => o.id), ['B', 'A']);
   assert.deepEqual(hand.map(o => o.id), ['A', 'B']);
+});
+
+test('removed manual mode migrates its visible order without losing offers or changing automatic/custom order', () => {
+  const hand = [offer('A', 10), offer('B', 20), offer('C', 30)];
+  const old = { criterion: 'hourly', automatic: false, manualOrder: ['C', 'A', 'B'] };
+  assert.deepEqual(migrateManualOrder(hand, old).map(o => o.id), ['C', 'A', 'B']);
+  assert.equal(migrateManualOrder(hand, { ...old, automatic: true }), hand);
+  assert.equal(migrateManualOrder(hand, { ...old, criterion: 'custom' }), hand);
+  assert.equal(migrateManualOrder(hand, null), hand);
+});
+
+test('group totals include folded incomes and realization factors independently of tax/work inputs', () => {
+  const input = { monthlyBase: 28000, monthlyAllowance: 1000, salaryMonths: 13, allowanceMonths: 12,
+    annualBonus: 30000, bonusFactor: .5, signOn: 50000, signFactor: 1, stock: 80000, stockFactor: .8 };
+  assert.deepEqual(incomeTotals(input), { monthly: 29000, annual: 129000 });
+  assert.equal(incomeTotals({ ...input, weekdayHours: '' }).annual, 129000);
+  assert.equal(incomeTotals({ ...input, stockFactor: 2 }).annual, null);
+  assert.equal(incomeTotals({ ...input, monthlyAllowance: '' }).monthly, null);
+  assert.deepEqual(incomeTotals({ monthlyBase: 0 }), { monthly: 0, annual: 0 });
 });

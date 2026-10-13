@@ -28,6 +28,11 @@ export function orderByIds(offers, ids = []) {
   ).map(({ offer }) => offer);
 }
 
+export function migrateManualOrder(offers, settings) {
+  return settings && settings.criterion !== 'custom' && settings.automatic === false && Array.isArray(settings.manualOrder)
+    ? orderByIds(offers, settings.manualOrder) : offers;
+}
+
 export function displayedOffers(offers, settings) {
   if (settings.criterion === 'custom') return offers;
   return settings.automatic ? sortOffers(offers, settings.criterion, settings.direction) : orderByIds(offers, settings.manualOrder);
@@ -74,4 +79,13 @@ export function productValue(left, right, leftMax = Number.MAX_SAFE_INTEGER, rig
   const a = parse(left, leftMax), b = parse(right, rightMax);
   if (a === null || b === null || !Number.isFinite(a * b)) return null;
   return a * b;
+}
+
+export function incomeTotals(input) {
+  const sum = values => values.some(value => value === null) || !Number.isFinite(values.reduce((a, b) => a + b, 0)) ? null : values.reduce((a, b) => a + b, 0);
+  const monthly = sum([productValue(input.monthlyBase, 1), productValue(input.monthlyAllowance ?? 0, 1)]);
+  const annual = sum([['annualBonus', 'bonusFactor', 1], ['signOn', 'signFactor', 1], ['stock', 'stockFactor', 1],
+    ['option', 'optionFactor', .3], ['otherCash', 'otherFactor', 1], ['benefits', 'benefitFactor', .5]]
+    .map(([amount, factor, fallback]) => productValue(input[amount] ?? 0, input[factor] ?? fallback, Number.MAX_SAFE_INTEGER, 1)));
+  return { monthly, annual };
 }
