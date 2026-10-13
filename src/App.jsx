@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NEW_OFFER_INPUT, REFERENCE_INPUT } from './offer-defaults.js';
-import SurfaceEffects, { CardFoil } from './SurfaceEffects.jsx';
+import SurfaceEffects from './SurfaceEffects.jsx';
 import Flame, { MotionContext } from './Flame.jsx';
 import PixelSelect from './SelectField.jsx';
 import { calculate, cityPresets } from './calculator.js';
@@ -158,6 +158,14 @@ function ProductCounter({ offer, left, right, title, leftLabel, rightLabel, left
   </section>;
 }
 
+function FoldSection({ id, label, className, children }) {
+  const [open, setOpen] = useState(false);
+  return <section className={className}>
+    <div className="fold-content" id={id} hidden={!open}>{children}</div>
+    <ActionButton className="income-expand fold-toggle" aria-controls={id} aria-expanded={open} onClick={() => setOpen(value => !value)}>{open ? '− ' : '+ '}{label}</ActionButton>
+  </section>;
+}
+
 function TextResults({ rows, className = '' }) {
   return <dl className={'text-results ' + className}>{rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>;
 }
@@ -234,13 +242,13 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
           {['pensionRate', 'medicalRate', 'unemploymentRate', 'otherSocialRate', 'fundRate'].map(field => number(field, { unit: '%', max: 100, step: .1 }))}
         </div>
         <div className="field-grid deduction-fields" aria-label="税前扣除">{number('specialDeduction', { step: 1000 })}{number('otherDeduction', { step: 1000 })}</div>
-        <details className="advanced-settings"><summary>缴费上下限与固定医疗费</summary><div className="advanced-content">
+        <FoldSection className="advanced-settings" id={offer.id + '-fee-extra'} label="缴费上下限与固定医疗费"><div className="advanced-content">
           <div className="field-grid">{number('socialMin', { step: 100 })}{number('socialMax', { cap: true, step: 100 })}{number('fundMin', { step: 100 })}{number('fundMax', { cap: true, step: 100 })}{number('medicalFixed', { step: 1 })}</div>
           <p className="field-help">缴费预设为历史示例，请按实际年度与公司口径调整；基数上限留空表示未设上限。</p>
-        </div></details>
+        </div></FoldSection>
       </section>
     </div>
-    <details className="result-details"><summary>完整结果与税费明细</summary>
+    <FoldSection className="result-details" id={offer.id + '-result-extra'} label="完整结果与税费明细">
       <TextResults rows={[["价值折算税前总包", amount(r?.adjustedTC)], ['税前 855 等效年收入', amount(r?.eqPretax)], ['税后 855 等效年收入', amount(r?.eqAfter)],
         ['等效税前时薪', r ? money(r.eqPretax / 2080) + ' / h' : '—'], ['等效税后时薪', r ? money(r.eqAfterHourly) + ' / h' : '—'], ['税前名义总包', amount(r?.nominalTC)],
         ['平均月税后价值', r ? scaledMoney(r.afterTaxValue / 12, compactMoney, 'monthly') : '—'], ['预计个人所得税', amount(r?.taxTotal)], ['个人五险一金', amount(r?.socialTotal)], ['税后现金 / 权益价值', amount(r?.afterTaxValue)],
@@ -254,7 +262,7 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
       <h3 className="detail-heading">个人五险一金明细</h3>
       <TextResults className="contribution-breakdown" rows={[["社保月基数", amount(r?.appliedSocialBase)], ['公积金月基数', amount(r?.appliedFundBase)], ...[['养老 / 年', 'pension'], ['医疗 / 年（含固定费）', 'medical'], ['失业 / 年', 'unemployment'], ['其他社保 / 年', 'otherSocial'], ['公积金 / 年', 'fund'], ['个人全年缴费', 'socialTotal']].map(([label, key]) => [label, amount(r?.[key])])]} />
       <p className="field-help">{r?.rating.comment} 税后总包包含折算后的权益与福利，不等同于现金到账。855 为每天 8 小时、每周 5 天；全年比较按 2080 小时。</p>
-    </details>
+    </FoldSection>
     </div>
   </section>;
 }
@@ -272,7 +280,7 @@ function RatingSeal({ result, card = false }) {
 function OfferSlot({ offer, index, selected, select, dragHandlers, isDragging, insertionBefore, move, metric, compactMoney }) {
   return <button className={'offer-slot ' + (selected ? 'is-selected ' : '') + (isDragging ? 'is-dragging ' : '') + (insertionBefore ? 'insert-before' : '')} data-offer-id={offer.id}
     aria-label={'选择 ' + (offer.name || '未命名 Offer')} aria-pressed={selected} onClick={select} onKeyDown={e => { if (e.altKey && ['ArrowLeft', 'ArrowRight'].includes(e.key)) { e.preventDefault(); move(e.key === 'ArrowLeft' ? -1 : 1); } }} {...dragHandlers}>
-    <CardFoil active={selected} /><RatingSeal result={offer.result} card />
+    <RatingSeal result={offer.result} card />
     <span className="slot-corner joker-mark" aria-hidden="true">J<span>O</span><span>K</span><span>E</span><span>R</span></span>
     <span className="slot-art" aria-hidden="true"><svg viewBox="0 0 48 48" shapeRendering="crispEdges"><path fill="#009dff" d="M4 8h12v4h8v16H12V16H4z" /><path fill="#fe5f55" d="M32 4h12v16h-8v8H24V12h8z" /><path fill="#f3b958" d="M4 4h8v8H4zM36 0h8v8h-8z" /><path fill="#ead7a4" d="M12 24h24v16H12z" /><path fill="#374244" d="M16 28h4v4h-4zM28 28h4v4h-4zM20 36h8v4h-8z" /><path fill="#4bc292" d="M8 40h12v8H8zM28 40h12v8H28z" /></svg></span>
     <strong className="slot-name">{offer.name || '未命名 Offer'}</strong><span className="slot-score">{cardMetric(offer, metric, compactMoney)}</span>
@@ -319,7 +327,7 @@ export default function App() {
     if (!pendingFocus || !active) return;
     const input = document.getElementById(active.id + '-' + pendingFocus);
     for (let parent = input?.parentElement; parent && !parent.classList.contains('offer-editor'); parent = parent.parentElement) { if (parent.tagName === 'DETAILS') parent.open = true; }
-    const hiddenRows = input?.closest('tbody[hidden]');
+    const hiddenRows = input?.closest('[hidden]');
     if (hiddenRows) [...document.querySelectorAll('[aria-controls]')].find(button => button.getAttribute('aria-controls') === hiddenRows.id)?.click();
     requestAnimationFrame(() => input?.focus()); setPendingFocus(null);
   }, [pendingFocus, active?.id]);
@@ -449,11 +457,12 @@ export default function App() {
   return <MotionContext.Provider value={ui.animations}><SurfaceEffects background={ui.backgroundEffect} crt={ui.crtEffect} /><div className={'app-shell table-layout ' + (!ui.animations ? 'motion-off' : '')}>
     <aside className="sidebar" aria-label="标题、帮助与选项">
       <div className="sidebar-brand"><span className="brand-mark" aria-hidden="true">♠</span><div><h1><span>Offer</span> <span>Joker</span></h1></div></div>
+      <div className="sidebar-links"><a href="https://github.com/JustinWCola/offer_joker" target="_blank" rel="noreferrer">GitHub ↗</a><a href="https://github.com/JustinWCola/offer_joker/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noreferrer">Licenses ↗</a></div>
       <div className="sidebar-offer-count" aria-label="Offer 数量"><span>OFFER</span><strong>{offers.length}<small> / {MAX_OFFERS}</small></strong></div>
       <SortControl settings={ui.sort} configure={configureSort} />
 
-      <div className="side-bottom"><span className="save-indicator"><i />{saved ? '自动保存在此浏览器' : '存储不可用，仅当前会话'}</span><small>示例与缴费预设仅作参考</small></div>
-      <div className="sidebar-links"><a href="https://github.com/JustinWCola/offer_joker" target="_blank" rel="noreferrer">GitHub ↗</a><a href="https://github.com/JustinWCola/offer_joker/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noreferrer">Licenses ↗</a></div>
+      <div className="side-bottom"><span className="save-indicator"><i />{saved ? '自动保存在此浏览器' : '存储不可用，仅当前会话'}</span></div>
+
       <div className="sidebar-actions">
         <ActionButton className="sidebar-button help-button" onClick={() => dialogRef.current.showModal()}>? 帮助</ActionButton>
         <ActionButton className="sidebar-button options-button" onClick={() => optionsRef.current.showModal()}>⚙ 选项</ActionButton>

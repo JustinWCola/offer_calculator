@@ -52,6 +52,6 @@ game sprites, sounds or original game font are distributed with this app.
 
 M6X11 is a font by Daniel Linssen, supplied by the user. Its original attribution/usage note is distributed at `public/licenses/m6x11-read.txt` and the author is credited in the help dialog.
 
-The user supplied LÖVE background, polychrome, flame and CRT shader references. These references are retained in `src/shaders/reference`; browser shader adaptations and CSS CRT approximation are documented in README.md. The previous Balatro-Button Apache notice is retained for the earlier implementation; it does not assign that license to the supplied shader references.
+The user supplied LÖVE background, polychrome, flame and CRT shader references. Raw .fs references are not distributed in this repository. Runtime background/flame adaptations and the CSS CRT approximation are documented in README.md. The previous Balatro-Button Apache notice is retained for the earlier implementation; it does not assign that license to the supplied shader references.
 
 The rating wax-seal vectors and card icons are authored for this interface, guided by the user’s visual references.

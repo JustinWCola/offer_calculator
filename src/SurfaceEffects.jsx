@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useRef } from 'react';
 import { MotionContext } from './Flame.jsx';
 import backgroundShader from './shaders/background.frag?raw';
-import foilShader from './shaders/polychrome.frag?raw';
 
 function ShaderSurface({ source, className }) {
   const ref = useRef(null), motion = useContext(MotionContext);
@@ -26,7 +25,6 @@ function ShaderSurface({ source, className }) {
         gl.uniform1f(u('time'),t);gl.uniform1f(u('spin_time'),t*.25);gl.uniform1f(u('spin_amount'),.22);gl.uniform1f(u('contrast'),2);
         gl.uniform4f(u('love_ScreenSize'),canvas.width,canvas.height,0,0);
         gl.uniform4f(u('colour_1'),.09,.29,.23,1);gl.uniform4f(u('colour_2'),.16,.43,.33,1);gl.uniform4f(u('colour_3'),.055,.21,.18,1);
-        gl.uniform2f(u('polychrome'),.6,1);gl.uniform4f(u('texture_details'),0,0,canvas.width,canvas.height);gl.uniform2f(u('image_details'),canvas.width,canvas.height);gl.uniform1f(u('dissolve'),0);gl.uniform1i(u('shadow'),0);
         gl.drawArrays(gl.TRIANGLES,0,6);canvas.dataset.rendered='true';
       }
       if(motion&&!reduced.matches)frame=requestAnimationFrame(draw);
@@ -37,5 +35,5 @@ function ShaderSurface({ source, className }) {
   },[source,motion]);
   return <canvas ref={ref} className={className} aria-hidden="true" />;
 }
-export function CardFoil({ active }){return active ? <ShaderSurface source={foilShader} className="card-polychrome" /> : <span className="card-polychrome foil-static" aria-hidden="true" />;}
+
 export default function SurfaceEffects({ background, crt }) { return <>{background && <ShaderSurface source={backgroundShader} className="table-background-effect" />}{crt && <div className="crt-screen-effect" aria-hidden="true" />}</>; }

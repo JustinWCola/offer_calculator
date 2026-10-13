@@ -829,3 +829,19 @@ body::before{animation:none}
 .summary-identity .editor-name .editor-seal strong{display:block;margin:0;line-height:14px;color:var(--seal-light)}
 .summary-identity .editor-name input{width:min(var(--name-width,280px),calc(100% - 70px));flex:0 1 auto}
 @media(max-width:800px){.summary-identity .editor-name input{width:0;flex:1}.summary-identity .editor-name .editor-seal .seal-icon{font-size:13px;line-height:13px}.summary-identity .editor-name .editor-seal strong{line-height:10px}}
+/* Keep decorative marks out of the card's layout. */
+.offer-slot .card-seal{position:absolute;top:4px;right:4px;left:auto;bottom:auto;width:30px;height:30px;z-index:4}
+.offer-slot .joker-mark{position:absolute;left:5px;top:6px;width:9px;line-height:8px;display:flex;flex-direction:column;z-index:2}
+.offer-slot{height:115px;min-height:115px;max-height:115px;background:#fbfcff}
+.offer-slot .slot-art{margin-top:5px}.deck-face{background:#e8eff4}
+.sidebar-brand h1{font-family:'M6X11',sans-serif;font-size:36px}
+.sidebar-links{margin:0 0 5px;justify-content:center;gap:18px;text-align:center}
+.income-item-name{grid-template-columns:18px minmax(0,1fr);gap:7px;align-items:center}
+.shared-income-table .tax-symbol{display:grid;place-items:center;width:18px;height:18px;min-width:18px;padding:0;margin:0;border:1px solid #89b09d;border-radius:3px;box-shadow:0 1px #111f21;background:#314b42;color:#d4e8da;font-size:9px;line-height:1}
+.tax-symbol-field{display:flex;align-items:center;justify-content:center}
+.income-expand{text-align:right}
+.advanced-settings,.result-details{border:0;margin:12px 0 0;padding:0;box-shadow:none;background:transparent}
+.advanced-settings .advanced-content{padding:0;border:0;margin:0}
+.fold-content[hidden]{display:none}.fold-toggle{margin-top:12px;width:100%}
+.result-details .fold-content{padding:0 14px}.result-details .fold-toggle{margin-bottom:8px}
+@media(max-width:800px){.offer-slot{height:95px;min-height:95px;max-height:95px}.offer-slot .card-seal{width:25px;height:25px;top:3px;right:3px}.sidebar-brand h1{font-size:24px}.sidebar-links{justify-content:center;margin:0;gap:16px}.sidebar-brand{justify-content:center}.sidebar .sidebar-links{grid-column:1/-1}}
