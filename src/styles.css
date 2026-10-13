@@ -642,3 +642,17 @@ button{touch-action:manipulation}
 .monthly-income-table thead th:first-child{width:34%}.monthly-income-table thead th:nth-child(2),.monthly-income-table thead th:last-child{width:33%}
 .annual-income-table thead th:first-child{width:24%}.annual-income-table thead th:nth-child(2),.annual-income-table thead th:nth-child(3){width:25%}.annual-income-table thead th:last-child{width:26%}
 @media(max-width:800px){.shared-income-table .operand input{font-size:18px}.annual-income-table .operand input{font-size:15px}}
+
+/* Quiet shared headers and explicit sorting modes. */
+.shared-income-table thead th{background:transparent;border:0;color:#8fae9a;font-size:8px;padding:3px 4px 7px}
+.shared-income-table td,.shared-income-table tbody th{border:0}
+.shared-income-table caption{font-size:11px;color:#b7ccb7}
+.shared-income-table tfoot td{padding-top:2px}
+.fees-column>.contribution-fields{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px 10px;margin-top:13px}
+.sort-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.sort-modes button{min-height:32px;border:2px solid #567067;border-radius:4px;background:#233436;color:#bad0be;font-size:11px;padding:4px 2px;box-shadow:0 2px #172728}
+.sort-modes button[aria-pressed=true]{background:#df9b31;border-color:#ffcf70;color:#fff3d7;box-shadow:0 2px #966626}
+.sort-modes button:hover:not([aria-pressed=true]){background:#496058;color:#ffdc95}
+.sort-direction button{min-height:31px;font-size:11px}
+.sort-execute{min-height:33px}
+@media(max-width:800px){.sort-modes button{min-height:36px;font-size:12px}.sort-direction button,.sort-execute{min-height:35px}}

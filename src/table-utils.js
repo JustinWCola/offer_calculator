@@ -46,10 +46,23 @@ export function stepValue(raw, delta, step = 1, max = Number.MAX_SAFE_INTEGER) {
   return Math.min(max, Math.max(0, Number(((Number.isFinite(value) ? value : 0) + delta * step).toFixed(6))));
 }
 
-export function multiplierHeat(value, baseline = 1) {
-  if (!Number.isFinite(value) || !Number.isFinite(baseline) || baseline <= 0) return 0;
-  const ratio = value / baseline;
-  return ratio >= 1.6 ? 3 : ratio >= 1.25 ? 2 : ratio > 1.001 ? 1 : 0;
+export function configureSorting(offers, settings, patch) {
+  const validRule = value => SORT_OPTIONS.some(([key]) => key === value);
+  const remembered = validRule(settings.criterion) ? settings.criterion : validRule(settings.lastCriterion) ? settings.lastCriterion : 'hourly';
+  if (patch.mode === 'custom') return { ...settings, criterion: 'custom', automatic: false, manualOrder: [], lastCriterion: remembered };
+  const criterion = validRule(patch.criterion) ? patch.criterion : remembered;
+  const direction = patch.direction ?? settings.direction;
+  const automatic = patch.mode === 'automatic' || (patch.mode !== 'manual' && settings.automatic);
+  return { criterion, direction, automatic, lastCriterion: criterion,
+    manualOrder: automatic ? settings.manualOrder : sortOffers(offers, criterion, direction).map(offer => offer.id) };
+}
+
+// Income uses annual yuan; work counters use weekly hours. A zero or invalid
+// product never burns, regardless of either individual operand or recent edits.
+export function productHeat(value, unit = 'income') {
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  const thresholds = unit === 'hours' ? [40, 50, 60] : [100000, 300000, 500000];
+  return value >= thresholds[2] ? 3 : value >= thresholds[1] ? 2 : value >= thresholds[0] ? 1 : 0;
 }
 
 export function productValue(left, right, leftMax = Number.MAX_SAFE_INTEGER, rightMax = Number.MAX_SAFE_INTEGER) {

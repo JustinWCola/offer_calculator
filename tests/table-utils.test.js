@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sortOffers, multiplierHeat, productValue, displayedOffers, moveOffer, orderByIds, stepValue } from '../src/table-utils.js';
+import { sortOffers, productHeat, configureSorting, productValue, displayedOffers, moveOffer, orderByIds, stepValue } from '../src/table-utils.js';
 
 const offer = (name, hourly, monthly = 10000, hours = 40) => ({ id: name, name, input: { monthlyBase: monthly },
   result: hourly == null ? null : { eqAfterHourly: hourly, afterTaxValue: hourly * 2080, nominalTC: monthly * 12, wh: { actual: hours } } });
@@ -23,13 +23,19 @@ test('multiplication distinguishes blank, invalid and zero values and enforces o
   assert.equal(productValue(10000, 0), 0);
   for (const values of [['', 13], [' ', 13], [-1, 13], [Infinity, 1], [8, 6, 24, 5]]) assert.equal(productValue(...values), null);
 });
-test('fire intensity follows the multiplier relative to its meaningful baseline', () => {
-  assert.equal(multiplierHeat(12, 12), 0);
-  assert.equal(multiplierHeat(13, 12), 1);
-  assert.equal(multiplierHeat(15, 12), 2);
-  assert.equal(multiplierHeat(20, 12), 3);
-  assert.equal(multiplierHeat(1.3), 2);
-  assert.equal(multiplierHeat(NaN), 0);
+test('fire depends on the complete product, with independent annual-income and weekly-hour scales', () => {
+  for (const value of [null, NaN, Infinity, -1, 0, 99999]) assert.equal(productHeat(value), 0);
+  assert.equal(productHeat(100000), 1);
+  assert.equal(productHeat(300000), 2);
+  assert.equal(productHeat(500000), 3);
+  assert.equal(productHeat(productValue(1000, 24)), 0);
+  assert.equal(productHeat(productValue(50000, 12)), 3);
+  assert.equal(productHeat(productValue(25000, 12)), productHeat(productValue(30000, 10)));
+  assert.equal(productHeat(productValue(0, 24)), 0);
+  assert.equal(productHeat(productValue(8, 4), 'hours'), 0);
+  assert.equal(productHeat(productValue(8, 5), 'hours'), 1);
+  assert.equal(productHeat(productValue(10, 5), 'hours'), 2);
+  assert.equal(productHeat(productValue(12, 5), 'hours'), 3);
 });
 
 test('manual snapshots remain fixed on edits while automatic sorting recomputes without changing custom order', () => {
@@ -57,4 +63,35 @@ test('value arrows respect decimals, blanks, zero and upper limits', () => {
   assert.equal(stepValue('', 1, 500), 500);
   assert.equal(stepValue(0, -1, .5), 0);
   assert.equal(stepValue(5, 1, .5, 5), 5);
+});
+
+test('mode buttons apply rules immediately while manual edits remain frozen until re-sort', () => {
+  const hand = [offer('A', 10), offer('B', 20)];
+  const custom = { criterion: 'custom', lastCriterion: 'hourly', direction: 'desc', automatic: false, manualOrder: [] };
+  const manual = configureSorting(hand, custom, { mode: 'manual' });
+  assert.deepEqual(displayedOffers(hand, manual).map(o => o.id), ['B', 'A']);
+  hand[0].result.eqAfterHourly = 30;
+  assert.deepEqual(displayedOffers(hand, manual).map(o => o.id), ['B', 'A']);
+  const refreshed = configureSorting(hand, manual, { mode: 'manual' });
+  assert.deepEqual(displayedOffers(hand, refreshed).map(o => o.id), ['A', 'B']);
+  const automatic = configureSorting(hand, custom, { mode: 'automatic' });
+  assert.deepEqual(displayedOffers(hand, automatic).map(o => o.id), ['A', 'B']);
+  const ascending = configureSorting(hand, automatic, { direction: 'asc' });
+  assert.deepEqual(displayedOffers(hand, ascending).map(o => o.id), ['B', 'A']);
+});
+
+test('custom mode remembers the last metric and returning to metric mode does not overwrite custom order', () => {
+  const hand = [offer('A', 10, 20000), offer('B', 20, 10000)];
+  const manual = configureSorting(hand, { criterion: 'custom', direction: 'desc', manualOrder: [] }, { mode: 'manual', criterion: 'monthly' });
+  const custom = configureSorting(hand, manual, { mode: 'custom' });
+  assert.equal(custom.criterion, 'custom');
+  assert.equal(custom.lastCriterion, 'monthly');
+  assert.equal(custom.automatic, false);
+  assert.deepEqual(displayedOffers(hand, custom).map(o => o.id), ['A', 'B']);
+  const automatic = configureSorting(hand, custom, { mode: 'automatic' });
+  assert.equal(automatic.criterion, 'monthly');
+  assert.equal(automatic.automatic, true);
+  const changedRule = configureSorting(hand, manual, { criterion: 'hourly' });
+  assert.deepEqual(displayedOffers(hand, changedRule).map(o => o.id), ['B', 'A']);
+  assert.deepEqual(hand.map(o => o.id), ['A', 'B']);
 });
