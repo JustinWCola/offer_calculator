@@ -687,3 +687,10 @@ body::before{animation:none}
 .income-item-name{display:block}.income-item-title{display:block;font-size:10px;line-height:14px}
 .income-item-total{display:flex;align-items:center;gap:5px;margin-top:3px;min-width:0}
 .income-item-total output{margin:0;min-width:0}.income-item-total .tax-symbol{width:14px;height:14px;min-width:14px;font-size:8px;flex:none}
+/* Shared action palettes; score colors and rating tiers remain separate. */
+:root{--action-yellow:#f6a000;--action-yellow-border:#ffbe39;--action-yellow-shadow:#a66a00;--action-yellow-hover:#ffb21e;--action-red:#fe5f55;--action-red-border:#ff8f80;--action-red-shadow:#b43d35;--action-red-hover:#ff796c;--action-green:#318b73;--action-green-border:#75bea0;--action-green-shadow:#245448}
+.primary-button,.options-button,.summary-actions .reset-offer,.sort-modes button[aria-pressed=true],.sort-rule-list button[aria-pressed=true],.sort-direction button[aria-pressed=true]{background:var(--action-yellow);border-color:var(--action-yellow-border);color:#fff4dc;box-shadow:0 3px var(--action-yellow-shadow);text-shadow:1px 1px #925c00}
+.primary-button:hover:not(:disabled),.options-button:hover:not(:disabled),.summary-actions .reset-offer:hover:not(:disabled),.sort-modes button[aria-pressed=true]:hover,.sort-rule-list button[aria-pressed=true]:hover,.sort-direction button[aria-pressed=true]:hover{background:var(--action-yellow-hover)}
+.help-button,.summary-actions .delete-offer{background:var(--action-red);border-color:var(--action-red-border);color:#fff4dc;box-shadow:0 3px var(--action-red-shadow);text-shadow:1px 1px #963a33}
+.help-button:hover:not(:disabled),.summary-actions .delete-offer:hover:not(:disabled){background:var(--action-red-hover)}
+.summary-actions .duplicate-offer{background:var(--action-green);border-color:var(--action-green-border);box-shadow:0 3px var(--action-green-shadow);text-shadow:1px 1px #245448}
