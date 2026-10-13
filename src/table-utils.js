@@ -87,5 +87,6 @@ export function incomeTotals(input) {
   const annual = sum([['annualBonus', 'bonusFactor', 1], ['signOn', 'signFactor', 1], ['stock', 'stockFactor', 1],
     ['option', 'optionFactor', .3], ['otherCash', 'otherFactor', 1], ['benefits', 'benefitFactor', .5]]
     .map(([amount, factor, fallback]) => productValue(input[amount] ?? 0, input[factor] ?? fallback, Number.MAX_SAFE_INTEGER, 1)));
-  return { monthly, annual };
+  const recurringAnnual = sum([productValue(input.monthlyBase, input.salaryMonths), productValue(input.monthlyAllowance ?? 0, input.allowanceMonths ?? 12, Number.MAX_SAFE_INTEGER, 12)]);
+  return { monthly, annual, recurringAnnual };
 }

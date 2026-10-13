@@ -108,9 +108,14 @@ test('removed manual mode migrates its visible order without losing offers or ch
 test('group totals include folded incomes and realization factors independently of tax/work inputs', () => {
   const input = { monthlyBase: 28000, monthlyAllowance: 1000, salaryMonths: 13, allowanceMonths: 12,
     annualBonus: 30000, bonusFactor: .5, signOn: 50000, signFactor: 1, stock: 80000, stockFactor: .8 };
-  assert.deepEqual(incomeTotals(input), { monthly: 29000, annual: 129000 });
+  assert.deepEqual(incomeTotals(input), { monthly: 29000, annual: 129000, recurringAnnual: 376000 });
   assert.equal(incomeTotals({ ...input, weekdayHours: '' }).annual, 129000);
   assert.equal(incomeTotals({ ...input, stockFactor: 2 }).annual, null);
   assert.equal(incomeTotals({ ...input, monthlyAllowance: '' }).monthly, null);
-  assert.deepEqual(incomeTotals({ monthlyBase: 0 }), { monthly: 0, annual: 0 });
+  assert.deepEqual(incomeTotals({ monthlyBase: 0, salaryMonths: 12 }), { monthly: 0, annual: 0, recurringAnnual: 0 });
+});
+
+test('monthly income headline totals products with different payment months', () => {
+ assert.equal(incomeTotals({ monthlyBase: 34000, salaryMonths: 14, monthlyAllowance: 1000, allowanceMonths: 10 }).recurringAnnual, 486000);
+ assert.equal(incomeTotals({ monthlyBase: 34000, salaryMonths: '' }).recurringAnnual, null);
 });

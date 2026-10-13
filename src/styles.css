@@ -707,3 +707,19 @@ button{touch-action:manipulation}
 }
 .side-bottom{margin-top:auto;padding-top:15px}.sidebar-actions{margin-top:9px;padding-top:0}
 @media(max-width:800px){.sidebar-actions{margin-top:0}}
+/* Compact table spacing and flames above the operand captions. */
+.operand-stack{position:relative;isolation:isolate}
+.operand{isolation:auto}
+.shader-fire{z-index:5;clip-path:inset(0 0 27px 0)}
+.shared-income-table tbody th,.shared-income-table tbody td{padding-top:5px;padding-bottom:5px}
+.income-item-name{display:grid;grid-template-columns:22px minmax(0,1fr);align-items:center;gap:4px}
+.fees-column>.fees-base-fields{grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr))}
+.sidebar-brand h1{font-size:30px;white-space:normal;line-height:1.05}
+.sidebar-brand h1 span{display:block}
+.sidebar-comparison{margin-top:16px;border-top:2px solid #1b2729;padding-top:12px}
+.sidebar-comparison h2{font-size:14px;font-weight:normal;margin:0 0 5px;color:#ffca62}
+.sidebar-comparison>small{font-size:9px;color:#a9c3bb}
+.sidebar-comparison button{display:block;width:100%;text-align:left;background:#213033;border:1px solid #50615e;border-radius:4px;margin-top:8px;padding:8px;color:#d4dccb;font:inherit;cursor:pointer}
+.sidebar-comparison button span{display:block;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sidebar-comparison button strong{display:block;color:#ffca62;font-weight:normal;font-size:12px;margin-top:4px}
+@media(max-width:800px){.sidebar-brand h1{font-size:18px}.sidebar-brand h1 span{display:inline}.sidebar-comparison{display:none}}
