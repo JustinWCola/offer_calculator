@@ -32,10 +32,10 @@ test('fire depends on the complete product, with independent annual-income and w
   assert.equal(productHeat(productValue(50000, 12)), 3);
   assert.equal(productHeat(productValue(25000, 12)), productHeat(productValue(30000, 10)));
   assert.equal(productHeat(productValue(0, 24)), 0);
-  assert.equal(productHeat(productValue(8, 4), 'hours'), 0);
-  assert.equal(productHeat(productValue(8, 5), 'hours'), 1);
-  assert.equal(productHeat(productValue(10, 5), 'hours'), 2);
-  assert.equal(productHeat(productValue(12, 5), 'hours'), 3);
+  assert.equal(productHeat(productValue(8, 4), 'hours'), 3);
+  assert.equal(productHeat(productValue(8, 5), 'hours'), 2);
+  assert.equal(productHeat(productValue(10, 5), 'hours'), 1);
+  assert.equal(productHeat(productValue(12, 5), 'hours'), 0);
 });
 
 test('manual snapshots remain fixed on edits while automatic sorting recomputes without changing custom order', () => {
@@ -118,4 +118,23 @@ test('group totals include folded incomes and realization factors independently 
 test('monthly income headline totals products with different payment months', () => {
  assert.equal(incomeTotals({ monthlyBase: 34000, salaryMonths: 14, monthlyAllowance: 1000, allowanceMonths: 10 }).recurringAnnual, 486000);
  assert.equal(incomeTotals({ monthlyBase: 34000, salaryMonths: '' }).recurringAnnual, null);
+});
+
+test('each income item uses its own annual-product thresholds, and less work burns more', () => {
+  assert.equal(productHeat(24000, 'monthlyAllowance'), 2);
+  assert.equal(productHeat(24000, 'monthlyBase'), 0);
+  assert.equal(productHeat(60000, 'annualBonus'), 2);
+  assert.equal(productHeat(60000, 'stock'), 1);
+  assert.equal(productHeat(150000, 'option'), 3);
+  assert.equal(productHeat(30000, 'benefits'), 3);
+  assert.equal(productHeat(45, 'weekdayHours'), 1);
+  assert.equal(productHeat(40, 'weekdayHours'), 2);
+  assert.equal(productHeat(32, 'weekdayHours'), 3);
+  assert.equal(productHeat(0, 'weekdayHours'), 0);
+  assert.equal(productHeat(0, 'weekendHours'), 3);
+  assert.equal(productHeat(5, 'weekendHours'), 2);
+  assert.equal(productHeat(10, 'weekendHours'), 1);
+  assert.equal(productHeat(11, 'weekendHours'), 0);
+  assert.equal(productHeat(null, 'weekendHours'), 0);
+  assert.equal(productHeat(0, 'invalid'), 0);
 });

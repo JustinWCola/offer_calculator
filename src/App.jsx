@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { NEW_OFFER_INPUT, REFERENCE_INPUT } from './offer-defaults.js';
 import SurfaceEffects, { CardFoil } from './SurfaceEffects.jsx';
 import Flame, { MotionContext } from './Flame.jsx';
 import PixelSelect from './SelectField.jsx';
@@ -10,7 +11,6 @@ import { SORT_OPTIONS, productHeat, productValue, displayedOffers, orderByIds, m
 const STORAGE_KEY = 'offer-deck:v1';
 const MAX_OFFERS = 10;
 const cities = { beijing: '北京', shanghai: '上海', shenzhen: '深圳', guangzhou: '广州', hangzhou: '杭州', chengdu: '成都', nanjing: '南京', wuhan: '武汉', custom: '自定义' };
-const suits = ['♠', '♥', '♣', '♦'];
 const newId = () => globalThis.crypto?.randomUUID?.() ?? `offer-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 const money = value => new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY', maximumFractionDigits: 0 }).format(value);
 const scaledMoney = (value, compact, kind = 'annual') => compact && kind !== 'hourly' ? new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 2 }).format(value / (kind === 'monthly' ? 1000 : 10000)) + (kind === 'monthly' ? ' 千元' : ' 万元') : money(value);
@@ -22,15 +22,7 @@ function cardMetric(offer, criterion, compact) {
   return criterion === 'hours' ? value + ' h / 周' : scaledMoney(value, compact, criterion === 'monthly' ? 'monthly' : criterion === 'hourly' ? 'hourly' : 'annual') + (criterion === 'hourly' ? ' / h' : '');
 }
 const scoreNumber = (value, precision = 1) => Math.abs(value) >= 1000000 ? value.toExponential(1) : value.toLocaleString('en-US', { maximumFractionDigits: precision });
-const defaults = {
-  city: 'beijing', monthlyBase: 28000, salaryMonths: 13, monthlyAllowance: 0, allowanceMonths: 12,
-  annualBonus: 30000, bonusFactor: 1, bonusTax: 'separate', signOn: 0, signFactor: 1, signTax: 'comprehensive',
-  stock: 0, stockFactor: 1, stockTax: 'equity', option: 0, optionFactor: 0.3, optionTax: 'equity',
-  otherCash: 0, otherFactor: 1, otherTax: 'comprehensive', benefits: 0, benefitFactor: 0.5,
-  baseMode: 'salary', socialBase: 28000, fundBase: 28000, contribMonths: 12,
-  specialDeduction: 0, otherDeduction: 0, weekdayDays: 5, weekdayHours: 8, weekendDays: 0, weekendHours: 0,
-  growth: 1, locationFactor: 1, annualLeave: 0, publicHolidays: 0, paidSickLeave: 0,
-};
+const defaults = NEW_OFFER_INPUT;
 const labels = {
   annualLeave: '带薪年假', publicHolidays: '法定假日', paidSickLeave: '带薪病假', city: '工作城市', baseMode: '缴费基数模式', bonusTax: '奖金计税方式', signTax: '签字费计税方式',
   stockTax: '股票计税方式', optionTax: '期权计税方式', otherTax: '其他现金计税方式',
@@ -55,8 +47,7 @@ function makeOffer(name, overrides = {}) {
   return { id: newId(), name, input: { ...input, ...presetFields(input.city) } };
 }
 function exampleOffers() {
-  return [makeOffer('稳稳的幸福'), makeOffer('冲一把未来', { city: 'shanghai', monthlyBase: 34000, salaryMonths: 14,
-    annualBonus: 0, stock: 80000, stockFactor: 0.8, weekdayHours: 10, growth: 1.15 })];
+  return [makeOffer('参考 Offer', REFERENCE_INPUT)];
 }
 function loadOffers() {
   try {
@@ -109,7 +100,7 @@ function MethodDialog({ dialogRef }) {
     <div className="dialog-header"><div><span className="eyebrow">THE RULES</span><h2 id="rules-title">这副牌怎么算？</h2></div>
       <button className="dialog-close" aria-label="关闭计算规则" onClick={() => dialogRef.current.close()}>×</button></div>
     <div className="method-content">
-      <h3>使用牌桌</h3><p>点击顶部 Offer 卡牌选择要编辑的报价；选中的卡牌会向上抽出。左侧排序可选择自定义或自动。自动排序随输入变化更新；拖动手牌会采用当前顺序并切换到自定义，关闭自动排序。拖动手牌调整位置，键盘可按 Alt + 左右方向键移动。点击牌槽旁的牌堆新增报价，或将牌堆拖到牌槽；将任意 Offer 拖回牌堆即可删除，编辑区也提供删除按钮。删除后可撤销。键盘用户可以用 Tab 和 Enter 完成同样的操作。</p><p>收入、工时、税费在编辑区并列展示；顶部结果始终可见。蓝色框是底数，红色框是倍率，结果使用完整精度计算。两数相乘后的乘积达到升温范围时，会出现分级火焰；年度金额按 10 万、30 万、50 万分级，周工时按 40、50、60 小时分级。火焰只表示乘积大小，不代表报价更好。可以在左侧选项关闭动画。</p><h3>① 先数清筹码</h3><p>名义总包 = 月薪 × 发薪月数 + 补贴 + 奖金 + 签字费 + 本年归属股权 + 其他收入 + 福利。浮动收入再乘以各自的兑现系数，得到价值折算总包。</p>
+      <h3>使用牌桌</h3><p>点击顶部 Offer 卡牌选择要编辑的报价；选中的卡牌会向上抽出。左侧排序可选择自定义或自动。自动排序随输入变化更新；拖动手牌会采用当前顺序并切换到自定义，关闭自动排序。拖动手牌调整位置，键盘可按 Alt + 左右方向键移动。点击牌槽旁的牌堆新增报价，或将牌堆拖到牌槽；将任意 Offer 拖回牌堆即可删除，编辑区也提供删除按钮。删除后可撤销。键盘用户可以用 Tab 和 Enter 完成同样的操作。</p><p>收入、工时、税费在编辑区并列展示；顶部结果始终可见。蓝色框是底数，红色框是倍率，结果使用完整精度计算。两数相乘后的乘积达到升温范围时，会出现分级火焰；年度收入按项目分别升温：月基本工资全年合计为 12／24／48 万元，月现金补贴全年合计为 0.6／2.4／6 万元，年终奖为 2／6／15 万元，签字费为 2／10／30 万元，股票为 5／20／50 万元，期权为 1／5／15 万元，其他现金为 0.5／2／8 万元，福利为 0.3／1／3 万元。浮动收入使用金额乘兑现系数后的值。工作日每周工时 ≤50／40／32 小时依次升温，周末每周工时 ≤10／5／2 小时依次升温；没有周末加班也会显示旺火，但空值或无效工作安排不触发。火焰只是所设展示规则，不改变税费或计算结果。可以在左侧选项关闭动画。</p><h3>① 先数清筹码</h3><p>名义总包 = 月薪 × 发薪月数 + 补贴 + 奖金 + 签字费 + 本年归属股权 + 其他收入 + 福利。浮动收入再乘以各自的兑现系数，得到价值折算总包。</p>
       <h3>② 扣掉税费</h3><p>综合所得使用年度七级税率，扣除 60,000 元基本减除费用、个人五险一金及全年税前扣除。奖金可以单独计税，符合条件的股权可以单独按年度税率计税。税费按名义金额估算，税后价值包含折算后的权益与福利，不等于现金到账。</p><p>股票填写本年归属的股票或 RSU 金额；期权填写本年可实现的价值，再分别用兑现系数折算。固定收入包含月基本工资及月现金补贴；浮动收入包含年终奖、签字费、股票、期权等。</p>
       <h3>③ 让时间也有价格</h3><p>成长与生活偏好以 1 为中性值；全年工作日 =（工作日 + 周末加班日）× 52 − 带薪年假 − 法定假日 − 带薪病假 × 0.6；按剩余工作日比例折算实际及加权全年工时，等效年收入使用 2080 ÷ 加权全年工时。假期天数按占用原计划工作日填写，避免重复扣除；法定假日调休需计入实际工作安排。</p><p>加权周工时 = 工作日正常工时 + 1.5 × 工作日超出 8 小时的工时 + 2 × 周末工时。</p>
       <div className="formula">税后 855 等效 = 税后价值 × 成长系数 × 生活偏好系数 × 2080 ÷ 加权全年工时<br /><br />等效税后时薪 = 税后 855 等效 ÷ 2,080</div>
@@ -143,7 +134,7 @@ function loadUi() {
 function ProductCounter({ offer, left, right, title, leftLabel, rightLabel, leftUnit = '元', rightUnit = '×',
   heatUnit = 'income', leftMax, rightMax, leftStep = 100, rightStep = .05, format = money, update, notes = false, explanation, tableMode = false, tax, compactMoney = false }) {
   const a = offer.input[left], b = offer.input[right], result = productValue(a, b, leftMax, rightMax);
-  const heat = productHeat(result, heatUnit);
+  const heat = productHeat(result, left === 'weekendHours' && !(productValue(offer.input.weekdayHours, offer.input.weekdayDays, 24, 5) > 0) ? 'invalid' : left);
   const operand = (field, value, label, unit, color, max, step) => <div className="operand-stack">
     <label className={tableMode ? 'sr-only' : 'operand-caption'} htmlFor={offer.id + '-' + field}>{label}<span>{unit}</span></label>
     <div className={'operand ' + color + ' heat-' + heat} data-heat={heat}>
@@ -152,9 +143,9 @@ function ProductCounter({ offer, left, right, title, leftLabel, rightLabel, left
     </div>
   </div>;
   if (tableMode) return <tr className="income-row" data-product={left}>
-    <th scope="row"><div className="income-item-name">{tax || <span className="tax-symbol tax-symbol-static" title="并入综合所得">综</span>}<span>{title}</span></div><output data-testid={'product-' + left}>{result === null ? '—' : format(result)}</output></th>
+    <th scope="row"><div className="income-item-name">{tax || <span className="tax-symbol tax-symbol-static" title="并入综合所得">综</span>}<div className="income-item-copy"><span>{title}</span><output data-testid={'product-' + left}>{result === null ? '—' : format(result)}</output></div></div></th>
     <td>{operand(left, a, leftLabel || labels[left], leftUnit, 'chips-operand', leftMax, leftStep)}</td>
-    <td className="income-mult-cell"><span className="row-multiply" aria-hidden="true">×</span>{operand(right, b, rightLabel || labels[right], rightUnit, 'mult-operand', rightMax, rightStep)}</td>
+    <td className="income-operator-cell"><span className="row-multiply" aria-hidden="true">×</span></td><td className="income-mult-cell">{operand(right, b, rightLabel || labels[right], rightUnit, 'mult-operand', rightMax, rightStep)}</td>
   </tr>;
   return <section className="product-counter" aria-label={title + '乘法'} data-product={left}>
     <div className="product-title"><h3>{title}</h3><output className="product-result" aria-live="polite" data-testid={'product-' + left}>{result === null ? '—' : format(result)}</output></div>
@@ -191,10 +182,10 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
   ];
   return <section className="offer-editor" aria-label="当前 Offer 编辑区">
     <header className="offer-summary">
-      <div className="summary-identity"><div className="editor-name"><label className="sr-only" htmlFor={offer.id + '-name'}>Offer 名称</label>
+      <div className="summary-identity"><div className="editor-name" style={{ '--name-width': Math.min(280, Math.max(90, [...offer.name].reduce((width, char) => width + (char.codePointAt(0) > 255 ? 19 : 11), 0) + 14)) + 'px' }}><label className="sr-only" htmlFor={offer.id + '-name'}>Offer 名称</label>
         <input id={offer.id + '-name'} value={offer.name} maxLength={32} onChange={e => update('name', e.target.value)} placeholder="为这份 Offer 命名" />
-        <span>{cities[offer.input.city]}{!r && ' · 输入待完善'}</span></div>
-        <div className="summary-actions">{r && <RatingSeal result={r} />}<ActionButton className="icon-button delete-offer" onClick={discard} aria-label="删除当前 Offer" title="删除当前 Offer"><span aria-hidden="true">×</span><small>删除</small></ActionButton>
+        {r && <RatingSeal result={r} />}</div>
+        <div className="summary-actions"><ActionButton className="icon-button delete-offer" onClick={discard} aria-label="删除当前 Offer" title="删除当前 Offer"><span aria-hidden="true">×</span><small>删除</small></ActionButton>
         <ActionButton className="icon-button duplicate-offer" onClick={duplicate} disabled={!canDuplicate} aria-label="复制当前 Offer" title="复制当前 Offer"><span aria-hidden="true">⧉</span><small>复制</small></ActionButton><ActionButton className="icon-button reset-offer" onClick={reset} aria-label="重置当前 Offer" title="重置当前 Offer"><span aria-hidden="true">↻</span><small>重置</small></ActionButton></div>
       </div>
       <div className="summary-metrics" aria-live="polite">
@@ -207,20 +198,20 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
     <div className="editor-scroll" key={offer.id}><div className="editor-columns">
       <section className="editor-column income-column" aria-labelledby="income-heading"><h2 id="income-heading" className="column-heading">01 <span>收入</span></h2>
         <table className="shared-income-table monthly-income-table"><caption><span>固定收入</span><strong data-testid="monthly-income-total">{totals.recurringAnnual === null ? '—' : scaledMoney(totals.recurringAnnual, compactMoney)}</strong></caption>
-          <thead><tr><th scope="col">项目 / 全年合计</th><th scope="col"><span className="income-heading-pair"><span>金额</span><span>{compactMoney ? '千元' : '元'} / 月</span></span></th><th scope="col"><span className="income-heading-pair"><span>发放月数</span><span>月</span></span></th></tr></thead>
+          <thead><tr><th scope="col">项目 / 全年合计</th><th scope="col"><span className="income-heading-pair"><span>金额</span><span>{compactMoney ? '千元' : '元'} / 月</span></span></th><th scope="col" className="income-operator-heading"><span className="sr-only">乘以</span></th><th scope="col"><span className="income-heading-pair"><span>发放月数</span><span>月</span></span></th></tr></thead>
           <tbody>{product('monthlyBase', 'salaryMonths', '月基本工资', { tableMode: true, leftStep: 500, rightStep: .5 })}</tbody>
           <tbody id={offer.id + '-monthly-extra'} hidden={!monthlyExpanded} data-income-extra="monthly">
             {product('monthlyAllowance', 'allowanceMonths', '月现金补贴', { tableMode: true, rightMax: 12, rightStep: 1 })}
           </tbody>
-          <tfoot><tr><td colSpan="3"><ActionButton className="income-expand" aria-expanded={monthlyExpanded} aria-controls={offer.id + '-monthly-extra'} onClick={() => setMonthlyExpanded(value => !value)}>{monthlyExpanded ? '− 月现金补贴' : '+ 月现金补贴'}</ActionButton></td></tr></tfoot>
+          <tfoot><tr><td colSpan="4"><ActionButton className="income-expand" aria-expanded={monthlyExpanded} aria-controls={offer.id + '-monthly-extra'} onClick={() => setMonthlyExpanded(value => !value)}>{monthlyExpanded ? '− 月现金补贴' : '+ 月现金补贴'}</ActionButton></td></tr></tfoot>
         </table>
         <table className="shared-income-table annual-income-table"><caption><span>浮动收入</span><strong data-testid="annual-income-total">{totals.annual === null ? '—' : scaledMoney(totals.annual, compactMoney)}</strong></caption>
-          <thead><tr><th scope="col">项目 / 折算价值</th><th scope="col"><span className="income-heading-pair"><span>名义金额</span><span>{compactMoney ? '万元' : '元'}</span></span></th><th scope="col"><span className="income-heading-pair"><span>兑现系数</span><span>×</span></span></th></tr></thead>
+          <thead><tr><th scope="col">项目 / 折算价值</th><th scope="col"><span className="income-heading-pair"><span>名义金额</span><span>{compactMoney ? '万元' : '元'}</span></span></th><th scope="col" className="income-operator-heading"><span className="sr-only">乘以</span></th><th scope="col"><span className="income-heading-pair"><span>兑现系数</span><span>×</span></span></th></tr></thead>
           <tbody>{product('annualBonus', 'bonusFactor', '年终奖', { tableMode: true, rightMax: 1, rightStep: .05, tax: select('bonusTax', [['separate', '奖金单独计税'], ['comprehensive', '并入综合所得']], '年终奖计税方式', true) })}</tbody>
           <tbody id={offer.id + '-annual-extra'} hidden={!annualExpanded} data-income-extra="annual">
             {annualIncomeRows.map(([left, right, title, tax, choices]) => product(left, right, title, { tableMode: true, rightMax: 1, rightStep: .05, tax: tax ? select(tax, choices, labels[tax], true) : <span className="tax-symbol tax-symbol-static" title="非现金福利：不计现金个税" aria-label="非现金福利不计现金个税">免</span> }))}
           </tbody>
-          <tfoot><tr><td colSpan="3"><ActionButton className="income-expand" aria-expanded={annualExpanded} aria-controls={offer.id + '-annual-extra'} onClick={() => setAnnualExpanded(value => !value)}>{annualExpanded ? '− 签字费、股票、期权等' : '+ 签字费、股票、期权等'}</ActionButton></td></tr></tfoot>
+          <tfoot><tr><td colSpan="4"><ActionButton className="income-expand" aria-expanded={annualExpanded} aria-controls={offer.id + '-annual-extra'} onClick={() => setAnnualExpanded(value => !value)}>{annualExpanded ? '− 签字费、股票、期权等' : '+ 签字费、股票、期权等'}</ActionButton></td></tr></tfoot>
         </table>
         {notes && <p className="field-help">月收入按发放月数合计；年终奖只填未计入发薪月数的部分。一次性收入按本年金额与兑现系数折算，税费仍按名义金额估算。</p>}
       </section>
@@ -271,33 +262,32 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
 function RatingSeal({ result, card = false }) {
   if (!result) return null;
   const symbols = result.eqAfterHourly >= 200 ? '♠' : result.eqAfterHourly >= 120 ? '♥' : result.eqAfterHourly >= 70 ? '♦' : result.eqAfterHourly >= 35 ? '♣' : '×';
-  return <span className={'rating-seal ' + (card ? 'card-seal' : 'editor-seal')} role="status" aria-label={'Offer 评价：' + result.rating.label} title={result.rating.comment}><span aria-hidden="true">{symbols}</span><strong>{result.rating.label}</strong></span>;
+  const tier = result.eqAfterHourly >= 200 ? 'legend' : result.eqAfterHourly >= 120 ? 'top' : result.eqAfterHourly >= 70 ? 'good' : result.eqAfterHourly >= 35 ? 'normal' : 'low';
+  return <span className={'rating-seal seal-' + tier + ' ' + (card ? 'card-seal' : 'editor-seal')} role="status" aria-label={'Offer 评价：' + result.rating.label} title={result.rating.comment}>
+    <svg className="wax-shape" viewBox="0 0 80 80" aria-hidden="true" shapeRendering="crispEdges"><path className="wax-shadow" d="M34 7L43 5L51 10L60 11L65 20L72 25L72 34L76 42L72 50L70 60L61 64L56 72L46 73L38 77L30 72L20 71L15 63L7 57L8 47L4 39L8 30L9 20L18 16L23 8Z"/><path className="wax-body" d="M34 3L43 1L51 6L60 7L65 16L72 21L72 30L76 38L72 46L70 56L61 60L56 68L46 69L38 73L30 68L20 67L15 59L7 53L8 43L4 35L8 26L9 16L18 12L23 4Z"/><circle className="wax-rim" cx="40" cy="37" r="27"/><circle className="wax-indent" cx="40" cy="38" r="23"/><path className="wax-highlight" d="M17 28L21 20L30 14L39 12M11 33L10 39M50 64L60 57" fill="none" strokeWidth="3"/></svg>
+    <span className="seal-icon" aria-hidden="true">{symbols}</span><strong>{result.rating.label}</strong>
+  </span>;
 }
 
 function OfferSlot({ offer, index, selected, select, dragHandlers, isDragging, insertionBefore, move, metric, compactMoney }) {
   return <button className={'offer-slot ' + (selected ? 'is-selected ' : '') + (isDragging ? 'is-dragging ' : '') + (insertionBefore ? 'insert-before' : '')} data-offer-id={offer.id}
     aria-label={'选择 ' + (offer.name || '未命名 Offer')} aria-pressed={selected} onClick={select} onKeyDown={e => { if (e.altKey && ['ArrowLeft', 'ArrowRight'].includes(e.key)) { e.preventDefault(); move(e.key === 'ArrowLeft' ? -1 : 1); } }} {...dragHandlers}>
     <CardFoil active={selected} /><RatingSeal result={offer.result} card />
-    <span className={'slot-corner ' + (index % 2 ? 'red-suit' : '')}>{suits[index % suits.length]}<small>{index + 1}</small></span>
+    <span className="slot-corner joker-mark" aria-hidden="true">J<span>O</span><span>K</span><span>E</span><span>R</span></span>
     <span className="slot-art" aria-hidden="true"><svg viewBox="0 0 48 48" shapeRendering="crispEdges"><path fill="#009dff" d="M4 8h12v4h8v16H12V16H4z" /><path fill="#fe5f55" d="M32 4h12v16h-8v8H24V12h8z" /><path fill="#f3b958" d="M4 4h8v8H4zM36 0h8v8h-8z" /><path fill="#ead7a4" d="M12 24h24v16H12z" /><path fill="#374244" d="M16 28h4v4h-4zM28 28h4v4h-4zM20 36h8v4h-8z" /><path fill="#4bc292" d="M8 40h12v8H8zM28 40h12v8H28z" /></svg></span>
     <strong className="slot-name">{offer.name || '未命名 Offer'}</strong><span className="slot-score">{cardMetric(offer, metric, compactMoney)}</span>
   </button>;
 }
 
 function SortControl({ settings, configure }) {
-  const [open, setOpen] = useState(() => matchMedia('(min-width: 801px)').matches);
-  useEffect(() => {
-    const media = matchMedia('(min-width: 801px)'), change = () => setOpen(media.matches);
-    media.addEventListener('change', change); return () => media.removeEventListener('change', change);
-  }, []);
   const mode = settings.criterion === 'custom' ? 'custom' : 'automatic';
-  return <details className="side-sorting" open={open} onToggle={e => setOpen(e.currentTarget.open)}><summary>手牌排序 <span>⇅</span></summary><div className="sort-settings">
+  return <section className="side-sorting" aria-labelledby="sorting-title"><h2 id="sorting-title">手牌排序</h2><div className="sort-settings">
     <div className="sort-modes" role="group" aria-label="排序模式">{[['custom', '自定义'], ['automatic', '自动']].map(([value, title]) =>
       <ActionButton key={value} aria-label={title + '排序'} aria-pressed={mode === value} onClick={() => configure({ mode: value })}>{title}</ActionButton>)}
     </div>
     <div className="sort-rule-list" role="group" aria-label="排序依据">{SORT_OPTIONS.map(([value, label]) => <ActionButton key={value} aria-pressed={mode !== 'custom' && settings.criterion === value} onClick={() => configure({ mode: 'automatic', criterion: value })}>{label}</ActionButton>)}</div>
     <div className="sort-direction" aria-label="排序方向">{[['desc', '降序 ↓'], ['asc', '升序 ↑']].map(([value, label]) => <ActionButton key={value} disabled={mode === 'custom'} aria-pressed={settings.direction === value} onClick={() => configure({ direction: value })}>{label}</ActionButton>)}</div>
-  </div></details>;
+  </div></section>;
 }
 
 function downloadText(filename, content) {
@@ -341,7 +331,7 @@ export default function App() {
   function add() {
     if (offers.length >= MAX_OFFERS) return notify('牌槽已满，先弃置一张再抽牌。');
     let index = 1; while (offers.some(o => o.name === '新 Offer ' + index)) index++;
-    const fresh = makeOffer('新 Offer ' + index, { monthlyBase: 25000, salaryMonths: 12, annualBonus: 0 });
+    const fresh = makeOffer('新 Offer ' + index, {});
     setOffers(current => current.length < MAX_OFFERS ? [...current, fresh] : current);
     setUi(current => ({ ...current, activeId: fresh.id })); notify('已抽取一份新 Offer。');
   }
@@ -353,7 +343,7 @@ export default function App() {
   function resetCurrent() {
     if (!active) return;
     setResetBackup({ id: active.id, input: { ...active.input } });
-    const fresh = makeOffer(active.name, { city: active.input.city, monthlyBase: 25000, salaryMonths: 12, annualBonus: 0 });
+    const fresh = makeOffer(active.name, { city: active.input.city });
     setOffers(current => current.map(o => o.id === active.id ? { ...o, input: fresh.input } : o));
     notify('已重置当前 Offer。');
   }
@@ -463,6 +453,7 @@ export default function App() {
       <SortControl settings={ui.sort} configure={configureSort} />
 
       <div className="side-bottom"><span className="save-indicator"><i />{saved ? '自动保存在此浏览器' : '存储不可用，仅当前会话'}</span><small>示例与缴费预设仅作参考</small></div>
+      <div className="sidebar-links"><a href="https://github.com/JustinWCola/offer_joker" target="_blank" rel="noreferrer">GitHub ↗</a><a href="https://github.com/JustinWCola/offer_joker/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noreferrer">Licenses ↗</a></div>
       <div className="sidebar-actions">
         <ActionButton className="sidebar-button help-button" onClick={() => dialogRef.current.showModal()}>? 帮助</ActionButton>
         <ActionButton className="sidebar-button options-button" onClick={() => optionsRef.current.showModal()}>⚙ 选项</ActionButton>
@@ -499,7 +490,7 @@ export default function App() {
         <label><input type="checkbox" checked={ui.notes} onChange={e => setUi(current => ({ ...current, notes: e.target.checked }))} />显示公式说明</label>
         <label><input type="checkbox" checked={ui.compactMoney} onChange={e => setUi(current => ({ ...current, compactMoney: e.target.checked }))} />紧凑金额单位（年度万元／月收入千元）</label>
         <ActionButton onClick={exportResults} disabled={offers.length === 0}>↓ 导出比较结果</ActionButton>
-        <ActionButton onClick={() => { setOffers(exampleOffers()); setDiscarded([]); setUi(current => ({ ...current, activeId: null, sort: defaultSort })); optionsRef.current.close(); notify('已恢复两份示例。'); }}>↻ 恢复示例</ActionButton>
+        <ActionButton onClick={() => { setOffers(exampleOffers()); setDiscarded([]); setUi(current => ({ ...current, activeId: null, sort: defaultSort })); optionsRef.current.close(); notify('已恢复参考示例。'); }}>↻ 恢复示例</ActionButton>
       </div>
     </dialog>
     {toast && <div className="toast" role="status"><span>{toast}</span>{toast.startsWith('已重置') && resetBackup && <ActionButton onClick={undoReset} disabled={!offers.some(o => o.id === resetBackup.id)}>撤销重置</ActionButton>}{toast.startsWith('已弃置') && <ActionButton onClick={undo} disabled={offers.length >= MAX_OFFERS}>撤销</ActionButton>}<button className="toast-close" aria-label="关闭提示" onClick={() => setToast('')}>×</button></div>}

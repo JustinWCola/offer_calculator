@@ -62,11 +62,19 @@ export function configureSorting(offers, settings, patch) {
     manualOrder: automatic ? settings.manualOrder : sortOffers(offers, criterion, direction).map(offer => offer.id) };
 }
 
-// Income uses annual yuan; work counters use weekly hours. A zero or invalid
-// product never burns, regardless of either individual operand or recent edits.
-export function productHeat(value, unit = 'income') {
-  if (!Number.isFinite(value) || value <= 0) return 0;
-  const thresholds = unit === 'hours' ? [40, 50, 60] : [100000, 300000, 500000];
+// Income heat uses the annual product, with thresholds appropriate to each item.
+export const INCOME_HEAT_THRESHOLDS = {
+  monthlyBase: [120000, 240000, 480000], monthlyAllowance: [6000, 24000, 60000],
+  annualBonus: [20000, 60000, 150000], signOn: [20000, 100000, 300000],
+  stock: [50000, 200000, 500000], option: [10000, 50000, 150000],
+  otherCash: [5000, 20000, 80000], benefits: [3000, 10000, 30000],
+};
+export function productHeat(value, item = 'income') {
+  if (!Number.isFinite(value) || value < 0 || item === 'invalid') return 0;
+  if (item === 'weekendHours') return value <= 2 ? 3 : value <= 5 ? 2 : value <= 10 ? 1 : 0;
+  if (value === 0) return 0;
+  if (item === 'weekdayHours' || item === 'hours') return value <= 32 ? 3 : value <= 40 ? 2 : value <= 50 ? 1 : 0;
+  const thresholds = INCOME_HEAT_THRESHOLDS[item] || [100000, 300000, 500000];
   return value >= thresholds[2] ? 3 : value >= thresholds[1] ? 2 : value >= thresholds[0] ? 1 : 0;
 }
 

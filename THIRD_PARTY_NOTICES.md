@@ -47,3 +47,11 @@ game sprites, sounds or original game font are distributed with this app.
 ## Balatro-Button pixel flame shader
 
 `src/shaders/flame.frag` is from [mininxd/Balatro-Button](https://github.com/mininxd/Balatro-Button), licensed under Apache License 2.0. The shader algorithm is retained; `src/Flame.jsx` provides a new React renderer with visibility suspension, reduced-motion handling, resource cleanup and fallback. Full license: [public/licenses/Balatro-Button-APACHE-2.0.txt](public/licenses/Balatro-Button-APACHE-2.0.txt). No upstream fonts or game sprites are included.
+
+## M6X11 and supplied effect references
+
+M6X11 is a font by Daniel Linssen, supplied by the user. Its original attribution/usage note is distributed at `public/licenses/m6x11-read.txt` and the author is credited in the help dialog.
+
+The user supplied LÖVE background, polychrome, flame and CRT shader references. These references are retained in `src/shaders/reference`; browser shader adaptations and CSS CRT approximation are documented in README.md. The previous Balatro-Button Apache notice is retained for the earlier implementation; it does not assign that license to the supplied shader references.
+
+The rating wax-seal vectors and card icons are authored for this interface, guided by the user’s visual references.
