@@ -132,7 +132,7 @@ function loadUi() {
   } catch { return { activeId: null, animations: true, notes: false, compactMoney: false, backgroundEffect: true, crtEffect: true, sort: defaultSort }; }
 }
 function ProductCounter({ offer, left, right, title, leftLabel, rightLabel, leftUnit = '元', rightUnit = '×',
-  heatUnit = 'income', leftMax, rightMax, leftStep = 100, rightStep = .05, format = money, update, notes = false, explanation, tableMode = false, tax, compactMoney = false }) {
+  leftMax, rightMax, leftStep = 100, rightStep = .05, format = money, update, notes = false, explanation, tableMode = false, tax, compactMoney = false }) {
   const a = offer.input[left], b = offer.input[right], result = productValue(a, b, leftMax, rightMax);
   const heat = productHeat(result, left === 'weekendHours' && !(productValue(offer.input.weekdayHours, offer.input.weekdayDays, 24, 5) > 0) ? 'invalid' : left);
   const operand = (field, value, label, unit, color, max, step) => <div className="operand-stack">
@@ -143,7 +143,7 @@ function ProductCounter({ offer, left, right, title, leftLabel, rightLabel, left
     </div>
   </div>;
   if (tableMode) return <tr className="income-row" data-product={left}>
-    <th scope="row"><div className="income-item-name">{tax || <span className="tax-symbol tax-symbol-static" title="并入综合所得">综</span>}<div className="income-item-copy"><span>{title}</span><output data-testid={'product-' + left}>{result === null ? '—' : format(result)}</output></div></div></th>
+    <th scope="row"><div className="income-item-name"><span className="income-item-title">{title}</span><div className="income-item-total">{tax || <span className="tax-symbol tax-symbol-static" title="并入综合所得">综</span>}<output data-testid={'product-' + left}>{result === null ? '—' : format(result)}</output></div></div></th>
     <td>{operand(left, a, leftLabel || labels[left], leftUnit, 'chips-operand', leftMax, leftStep)}</td>
     <td className="income-operator-cell"><span className="row-multiply" aria-hidden="true">×</span></td><td className="income-mult-cell">{operand(right, b, rightLabel || labels[right], rightUnit, 'mult-operand', rightMax, rightStep)}</td>
   </tr>;
@@ -224,10 +224,10 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
         {notes && <p className="field-help">月收入按发放月数合计；年终奖只填未计入发薪月数的部分。一次性收入按本年金额与兑现系数折算，税费仍按名义金额估算。</p>}
       </section>
       <section className="editor-column time-column" aria-labelledby="time-heading"><h2 id="time-heading" className="column-heading">02 <span>工时</span></h2>
-        {product('weekdayHours', 'weekdayDays', '工作日工时', { leftUnit: '小时 / 天', rightUnit: '天 / 周', leftMax: 24, rightMax: 5, leftStep: .5, rightStep: .5, heatUnit: 'hours', format: value => scoreNumber(value) + ' h / 周' })}
-        {product('weekendHours', 'weekendDays', '周末工时', { leftUnit: '小时 / 天', rightUnit: '天 / 周', leftMax: 24, rightMax: 2, leftStep: .5, rightStep: .5, heatUnit: 'hours', format: value => scoreNumber(value) + ' h / 周' })}
-        <section className="work-group" aria-labelledby="holiday-heading"><h3 id="holiday-heading">年度假期</h3><div className="field-grid holiday-fields" aria-label="年度假期">{['annualLeave', 'publicHolidays', 'paidSickLeave'].map(field => number(field, { unit: '天 / 年', max: 366, step: 1 }))}</div></section>
-        <section className="work-group" aria-labelledby="preference-heading"><h3 id="preference-heading">发展与偏好</h3><div className="field-grid preference-fields">
+        {product('weekdayHours', 'weekdayDays', '工作日工时', { leftUnit: '小时 / 天', rightUnit: '天 / 周', leftMax: 24, rightMax: 5, leftStep: .5, rightStep: .5, format: value => scoreNumber(value) + ' h / 周' })}
+        {product('weekendHours', 'weekendDays', '周末工时', { leftUnit: '小时 / 天', rightUnit: '天 / 周', leftMax: 24, rightMax: 2, leftStep: .5, rightStep: .5, format: value => scoreNumber(value) + ' h / 周' })}
+        <section className="work-group" aria-label="年度假期"><div className="field-grid holiday-fields" aria-label="年度假期">{['annualLeave', 'publicHolidays', 'paidSickLeave'].map(field => number(field, { unit: '天 / 年', max: 366, step: 1 }))}</div></section>
+        <section className="work-group" aria-label="发展与偏好"><div className="field-grid preference-fields">
           {select('growth', coefficientOptions(offer.input.growth, [[1.3, '1.30 顶级成长'], [1.15, '1.15 良好成长'], [1, '1.00 普通'], [.9, '0.90 较弱'], [.8, '0.80 消耗型']]), '发展前景')}
           {select('locationFactor', coefficientOptions(offer.input.locationFactor, [[1.3, '1.30 非常喜欢'], [1.15, '1.15 比较喜欢'], [1, '1.00 中性'], [.9, '0.90 不太喜欢'], [.8, '0.80 较不适应']]), '个人偏好')}
         </div></section>
@@ -277,7 +277,7 @@ function RatingSeal({ result, card = false }) {
   </span>;
 }
 
-function OfferSlot({ offer, index, selected, select, dragHandlers, isDragging, insertionBefore, move, metric, compactMoney }) {
+function OfferSlot({ offer, selected, select, dragHandlers, isDragging, insertionBefore, move, metric, compactMoney }) {
   return <button className={'offer-slot ' + (selected ? 'is-selected ' : '') + (isDragging ? 'is-dragging ' : '') + (insertionBefore ? 'insert-before' : '')} data-offer-id={offer.id}
     aria-label={'选择 ' + (offer.name || '未命名 Offer')} aria-pressed={selected} onClick={select} onKeyDown={e => { if (e.altKey && ['ArrowLeft', 'ArrowRight'].includes(e.key)) { e.preventDefault(); move(e.key === 'ArrowLeft' ? -1 : 1); } }} {...dragHandlers}>
     <RatingSeal result={offer.result} card />
@@ -470,7 +470,7 @@ export default function App() {
     </aside>
     <main className="playing-table" aria-label="Offer Joker">
       <div className="hand-row"><section className={'hand-zone ' + (drag?.target === 'hand' ? 'drop-ready' : '')} data-drop-zone="hand" aria-label="Offer 牌槽">
-        <div style={{ '--offer-count': offers.length }} className={'offer-hand ' + (offers.length >= 7 ? 'is-dense ' : '') + (drag?.kind === 'offer' && drag.target === 'hand' && !drag.insertBefore ? 'insert-end' : '')}>{displayed.map((offer, index) => <OfferSlot key={offer.id} offer={offer} index={index}
+        <div style={{ '--offer-count': offers.length }} className={'offer-hand ' + (offers.length >= 7 ? 'is-dense ' : '') + (drag?.kind === 'offer' && drag.target === 'hand' && !drag.insertBefore ? 'insert-end' : '')}>{displayed.map(offer => <OfferSlot key={offer.id} offer={offer}
           metric={metric} compactMoney={ui.compactMoney} selected={active?.id === offer.id} select={() => select(offer.id)} dragHandlers={dragHandlers({ kind: 'offer', id: offer.id })}
           isDragging={drag?.id === offer.id} insertionBefore={drag?.target === 'hand' && drag.insertBefore === offer.id} move={delta => moveCard(offer.id, delta)} />)}
           {offers.length === 0 && <div className="hand-empty">还没有手牌。点击抽牌堆，或拖一张进来。</div>}

@@ -41,17 +41,33 @@ Its complete accompanying license, including Cubic 11, M+ FONTS PROJECT and SIL
 Open Font License notices, is distributed unchanged at
 [`public/fonts/Cubic11-LICENSE.txt`](public/fonts/Cubic11-LICENSE.txt).
 
-Balatro-inspired layout references are documented in `DESIGN.md`. No Balatro
-game sprites, sounds or original game font are distributed with this app.
+Balatro-inspired layout references are documented in `DESIGN.md`. Card icons and
+wax-seal vectors are authored for this interface; no game sprites or sounds are
+included. Font permissions are documented separately above and below.
 
-## Balatro-Button pixel flame shader
+## Balatro-Button: historical flame reference
 
-`src/shaders/flame.frag` is from [mininxd/Balatro-Button](https://github.com/mininxd/Balatro-Button), licensed under Apache License 2.0. The shader algorithm is retained; `src/Flame.jsx` provides a new React renderer with visibility suspension, reduced-motion handling, resource cleanup and fallback. Full license: [public/licenses/Balatro-Button-APACHE-2.0.txt](public/licenses/Balatro-Button-APACHE-2.0.txt). No upstream fonts or game sprites are included.
+[mininxd/Balatro-Button](https://github.com/mininxd/Balatro-Button), licensed
+under Apache License 2.0, was the source of the early flame shader. That shader
+has been replaced by the user-supplied LÖVE adaptation in
+`src/shaders/flame.frag`. The React lifecycle, visibility suspension, resource
+cleanup and static fallback in `src/Flame.jsx` were authored for this app.
+
+The historical reference and its full license remain available at
+[public/licenses/Balatro-Button-APACHE-2.0.txt](public/licenses/Balatro-Button-APACHE-2.0.txt).
+This notice does not assign the Apache license to the user-supplied shader.
+
+## worth-calculator holiday calculation
+
+The 52-week workday calculation and 0.6 paid-sick-leave discount are adapted
+from [zippland/worth-calculator](https://github.com/zippland/worth-calculator).
+Its MIT license is distributed at
+[public/licenses/worth-calculator-MIT.txt](public/licenses/worth-calculator-MIT.txt).
 
 ## M6X11 and supplied effect references
 
 M6X11 is a font by Daniel Linssen, supplied by the user. Its original attribution/usage note is distributed at `public/licenses/m6x11-read.txt` and the author is credited in the help dialog.
 
-The user supplied LÖVE background, polychrome, flame and CRT shader references. Raw .fs references are not distributed in this repository. Runtime background/flame adaptations and the CSS CRT approximation are documented in README.md. The previous Balatro-Button Apache notice is retained for the earlier implementation; it does not assign that license to the supplied shader references.
+The current background and flame shader adaptations use LÖVE references supplied by the user; CRT uses a CSS approximation. Raw .fs references are not distributed in this repository. Runtime background/flame adaptations and the CSS CRT approximation are documented in README.md. The previous Balatro-Button Apache notice is retained for the earlier implementation; it does not assign that license to the supplied shader references.
 
 The rating wax-seal vectors and card icons are authored for this interface, guided by the user’s visual references.
