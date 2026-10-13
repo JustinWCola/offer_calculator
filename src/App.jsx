@@ -122,7 +122,11 @@ function loadUi() {
     const value = JSON.parse(localStorage.getItem(UI_KEY)) || {}, raw = value.sort || {};
     const previousCriterion = SORT_OPTIONS.some(([key]) => key === raw.criterion) ? raw.criterion : 'hourly';
     const criterion = raw.automatic === true && raw.criterion !== 'custom' ? previousCriterion : 'custom';
-    return { activeId: typeof value.activeId === 'string' ? value.activeId : null, animations: value.animations !== false, notes: value.notes === true,
+    let activeId = typeof value.activeId === 'string' ? value.activeId : null;
+    if (!activeId && raw.criterion !== 'custom' && raw.automatic === false && Array.isArray(raw.manualOrder)) {
+      try { const first = JSON.parse(localStorage.getItem(STORAGE_KEY))?.[0]; if (typeof first?.id === 'string') activeId = first.id; } catch { /* Leave damaged storage to the normal offer loader. */ }
+    }
+    return { activeId, animations: value.animations !== false, notes: value.notes === true,
       sort: { criterion, lastCriterion: SORT_OPTIONS.some(([key]) => key === raw.lastCriterion) ? raw.lastCriterion : previousCriterion, direction: raw.direction === 'asc' ? 'asc' : 'desc', automatic: criterion !== 'custom' && raw.automatic === true,
         manualOrder: Array.isArray(raw.manualOrder) ? raw.manualOrder.filter(id => typeof id === 'string') : [] } };
   } catch { return { activeId: null, animations: true, notes: false, sort: defaultSort }; }
