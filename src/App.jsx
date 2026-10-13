@@ -162,7 +162,7 @@ function FoldSection({ id, label, className, children }) {
   const [open, setOpen] = useState(false);
   return <section className={className}>
     <div className="fold-content" id={id} hidden={!open}>{children}</div>
-    <ActionButton className="income-expand fold-toggle" aria-controls={id} aria-expanded={open} onClick={() => setOpen(value => !value)}>{open ? '− ' : '+ '}{label}</ActionButton>
+    <ActionButton className="income-expand fold-toggle" aria-controls={id} aria-expanded={open} onClick={() => setOpen(value => !value)}><span className="fold-sign">{open ? '−' : '+'}</span>{' '}<span className="fold-label">{label}</span></ActionButton>
   </section>;
 }
 
@@ -211,7 +211,7 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
           <tbody id={offer.id + '-monthly-extra'} hidden={!monthlyExpanded} data-income-extra="monthly">
             {product('monthlyAllowance', 'allowanceMonths', '月现金补贴', { tableMode: true, rightMax: 12, rightStep: 1 })}
           </tbody>
-          <tfoot><tr><td colSpan="4"><ActionButton className="income-expand" aria-expanded={monthlyExpanded} aria-controls={offer.id + '-monthly-extra'} onClick={() => setMonthlyExpanded(value => !value)}>{monthlyExpanded ? '− 月现金补贴' : '+ 月现金补贴'}</ActionButton></td></tr></tfoot>
+          <tfoot><tr><td colSpan="4"><ActionButton className="income-expand" aria-expanded={monthlyExpanded} aria-controls={offer.id + '-monthly-extra'} onClick={() => setMonthlyExpanded(value => !value)}><span className="fold-sign">{monthlyExpanded ? '−' : '+'}</span>{' '}<span className="fold-label">月现金补贴</span></ActionButton></td></tr></tfoot>
         </table>
         <table className="shared-income-table annual-income-table"><caption><span>浮动收入</span><strong data-testid="annual-income-total">{totals.annual === null ? '—' : scaledMoney(totals.annual, compactMoney)}</strong></caption>
           <thead><tr><th scope="col">项目 / 折算价值</th><th scope="col"><span className="income-heading-pair"><span>名义金额</span><span>{compactMoney ? '万元' : '元'}</span></span></th><th scope="col" className="income-operator-heading"><span className="sr-only">乘以</span></th><th scope="col"><span className="income-heading-pair"><span>兑现系数</span><span>×</span></span></th></tr></thead>
@@ -219,7 +219,7 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
           <tbody id={offer.id + '-annual-extra'} hidden={!annualExpanded} data-income-extra="annual">
             {annualIncomeRows.map(([left, right, title, tax, choices]) => product(left, right, title, { tableMode: true, rightMax: 1, rightStep: .05, tax: tax ? select(tax, choices, labels[tax], true) : <span className="tax-symbol tax-symbol-static" title="非现金福利：不计现金个税" aria-label="非现金福利不计现金个税">免</span> }))}
           </tbody>
-          <tfoot><tr><td colSpan="4"><ActionButton className="income-expand" aria-expanded={annualExpanded} aria-controls={offer.id + '-annual-extra'} onClick={() => setAnnualExpanded(value => !value)}>{annualExpanded ? '− 签字费、股票、期权等' : '+ 签字费、股票、期权等'}</ActionButton></td></tr></tfoot>
+          <tfoot><tr><td colSpan="4"><ActionButton className="income-expand" aria-expanded={annualExpanded} aria-controls={offer.id + '-annual-extra'} onClick={() => setAnnualExpanded(value => !value)}><span className="fold-sign">{annualExpanded ? '−' : '+'}</span>{' '}<span className="fold-label">签字费、股票、期权等</span></ActionButton></td></tr></tfoot>
         </table>
         {notes && <p className="field-help">月收入按发放月数合计；年终奖只填未计入发薪月数的部分。一次性收入按本年金额与兑现系数折算，税费仍按名义金额估算。</p>}
       </section>

@@ -845,3 +845,12 @@ body::before{animation:none}
 .fold-content[hidden]{display:none}.fold-toggle{margin-top:12px;width:100%}
 .result-details .fold-content{padding:0 14px}.result-details .fold-toggle{margin-bottom:8px}
 @media(max-width:800px){.offer-slot{height:95px;min-height:95px;max-height:95px}.offer-slot .card-seal{width:25px;height:25px;top:3px;right:3px}.sidebar-brand h1{font-size:24px}.sidebar-links{justify-content:center;margin:0;gap:16px}.sidebar-brand{justify-content:center}.sidebar .sidebar-links{grid-column:1/-1}}
+.sidebar-brand{border-bottom:0;padding-bottom:4px}
+.sidebar-links{border-bottom:2px solid #1b292c;padding:4px 0 11px;margin-bottom:5px}
+.income-expand{display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:right}
+.fold-sign{flex:none;color:#ffca62;text-align:left;line-height:16px}
+.fold-label{min-width:0;text-align:right}
+.result-details{background:#182c33;border:1px solid #425d66;border-radius:4px;padding:10px;margin:16px 12px 10px;color:#d3e1dc}
+.result-details .fold-content{padding:0 4px}.result-details .fold-toggle{background:#233d46;margin-bottom:0}
+@media(max-width:800px){.sidebar-brand{padding-bottom:0}.sidebar-links{padding:2px 0 5px}.result-details{margin:12px 8px 8px;padding:8px}}
+.sidebar-brand h1{line-height:.92}
