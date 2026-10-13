@@ -102,7 +102,18 @@ export function calculate(input = {}) {
   const wh = { actual: regular + overtime + weekend, weighted: regular + 1.5 * overtime + 2 * weekend };
   if (wh.weighted <= 0) throw new Error('每周工时必须大于 0');
   const growth = number('growth', 1), locationFactor = number('locationFactor', 1);
-  const timeFactor = 40 / wh.weighted;
+  // Vacation-day discount follows zippland/worth-calculator (MIT): paid sick leave × 0.6.
+  const scheduledDays = (wd + wed) * 52;
+  const leaveDays = number('annualLeave', 0, 366) + number('publicHolidays', 0, 366) + number('paidSickLeave', 0, 366) * .6;
+  const workingDays = Math.max(scheduledDays - leaveDays, 0);
+  if (workingDays <= 0) throw new Error('annualLeave 与其他假期折算不能抵扣全部全年工作日');
+  const attendanceFactor = workingDays / scheduledDays;
+  wh.scheduledDays = scheduledDays;
+  wh.leaveDays = leaveDays;
+  wh.workingDays = workingDays;
+  wh.annualActual = wh.actual * 52 * attendanceFactor;
+  wh.annualWeighted = wh.weighted * 52 * attendanceFactor;
+  const timeFactor = 2080 / wh.annualWeighted;
   const eqPretax = adjustedTC * growth * locationFactor * timeFactor;
   const eqAfter = afterTaxValue * growth * locationFactor * timeFactor;
   const eqAfterHourly = eqAfter / (40 * 52);

@@ -28,10 +28,10 @@ const defaults = {
   otherCash: 0, otherFactor: 1, otherTax: 'comprehensive', benefits: 0, benefitFactor: 0.5,
   baseMode: 'salary', socialBase: 28000, fundBase: 28000, contribMonths: 12,
   specialDeduction: 0, otherDeduction: 0, weekdayDays: 5, weekdayHours: 8, weekendDays: 0, weekendHours: 0,
-  growth: 1, locationFactor: 1,
+  growth: 1, locationFactor: 1, annualLeave: 0, publicHolidays: 0, paidSickLeave: 0,
 };
 const labels = {
-  city: '工作城市', baseMode: '缴费基数模式', bonusTax: '奖金计税方式', signTax: '签字费计税方式',
+  annualLeave: '带薪年假', publicHolidays: '法定假日', paidSickLeave: '带薪病假', city: '工作城市', baseMode: '缴费基数模式', bonusTax: '奖金计税方式', signTax: '签字费计税方式',
   stockTax: '股票计税方式', optionTax: '期权计税方式', otherTax: '其他现金计税方式',
   monthlyBase: '税前月薪', salaryMonths: '发薪月数', monthlyAllowance: '每月补贴', allowanceMonths: '补贴月数',
   annualBonus: '额外年终奖', bonusFactor: '奖金兑现系数', signOn: '签字费', signFactor: '签字费兑现系数',
@@ -50,7 +50,7 @@ function presetFields(city) {
     socialMin: p.socialMin, socialMax: p.socialMax, fundMin: p.fundMin, fundMax: p.fundMax, medicalFixed: p.medicalFixed };
 }
 function makeOffer(name, overrides = {}) {
-  const input = { ...defaults, ...overrides };
+  const input = { ...defaults, annualLeave: 5, publicHolidays: 13, paidSickLeave: 3, ...overrides };
   return { id: newId(), name, input: { ...input, ...presetFields(input.city) } };
 }
 function exampleOffers() {
@@ -110,14 +110,14 @@ function MethodDialog({ dialogRef }) {
     <div className="method-content">
       <h3>使用牌桌</h3><p>点击顶部 Offer 卡牌选择要编辑的报价；选中的卡牌会向上抽出。左侧排序可选择自定义或自动。自动排序随输入变化更新；拖动手牌会采用当前顺序并切换到自定义，关闭自动排序。拖动手牌调整位置，键盘可按 Alt + 左右方向键移动。点击牌槽旁的牌堆新增报价，或将牌堆拖到牌槽；将任意 Offer 拖回牌堆即可删除，编辑区也提供删除按钮。删除后可撤销。键盘用户可以用 Tab 和 Enter 完成同样的操作。</p><p>收入、工时、税费在编辑区并列展示；顶部结果始终可见。蓝色框是底数，红色框是倍率，结果使用完整精度计算。两数相乘后的乘积达到升温范围时，会出现分级火焰；年度金额按 10 万、30 万、50 万分级，周工时按 40、50、60 小时分级。火焰只表示乘积大小，不代表报价更好。可以在左侧选项关闭动画。</p><h3>① 先数清筹码</h3><p>名义总包 = 月薪 × 发薪月数 + 补贴 + 奖金 + 签字费 + 本年归属股权 + 其他收入 + 福利。浮动收入再乘以各自的兑现系数，得到价值折算总包。</p>
       <h3>② 扣掉税费</h3><p>综合所得使用年度七级税率，扣除 60,000 元基本减除费用、个人五险一金及全年税前扣除。奖金可以单独计税，符合条件的股权可以单独按年度税率计税。税费按名义金额估算，税后价值包含折算后的权益与福利，不等于现金到账。</p>
-      <h3>③ 让时间也有价格</h3><p>加权周工时 = 工作日正常工时 + 1.5 × 工作日超出 8 小时的工时 + 2 × 周末工时。</p>
-      <div className="formula">税后 855 等效 = 税后价值 × 成长系数 × 生活偏好系数 × 40 ÷ 加权周工时<br /><br />等效税后时薪 = 税后 855 等效 ÷ 2,080</div>
-      <p>855 指每天 8 小时、每周 5 天；全年按 52 周比较。加权工时是比较模型，不是加班工资核算，也不包含假期与通勤。</p>
-      <div className="formula">蓝色底数 Chips = 税后价值 ÷ 2080<br />红色倍率 Mult = 40 ÷ 加权周工时 × 成长系数 × 生活偏好系数<br />Chips × Mult = 等效税后时薪</div>
+      <h3>③ 让时间也有价格</h3><p>成长与生活偏好以 1 为中性值；全年工作日 =（工作日 + 周末加班日）× 52 − 带薪年假 − 法定假日 − 带薪病假 × 0.6；按剩余工作日比例折算实际及加权全年工时，等效年收入使用 2080 ÷ 加权全年工时。假期天数按占用原计划工作日填写，避免重复扣除；法定假日调休需计入实际工作安排。</p><p>加权周工时 = 工作日正常工时 + 1.5 × 工作日超出 8 小时的工时 + 2 × 周末工时。</p>
+      <div className="formula">税后 855 等效 = 税后价值 × 成长系数 × 生活偏好系数 × 2080 ÷ 加权全年工时<br /><br />等效税后时薪 = 税后 855 等效 ÷ 2,080</div>
+      <p>855 指每天 8 小时、每周 5 天；全年按 52 周比较。加权工时是比较模型，不是加班工资核算，假期按上述规则抵扣，不包含通勤。</p>
+      <div className="formula">蓝色底数 Chips = 税后价值 ÷ 2080<br />红色倍率 Mult = 2080 ÷ 加权全年工时 × 成长系数 × 生活偏好系数<br />Chips × Mult = 等效税后时薪</div>
       <p>牌桌计分只是同一公式的拆分展示。显示值经过取整，最终结果始终按未取整数值计算；税费和兑现折扣已经计入蓝色底数。</p>
       <h3>④ 看牌面，也看自己</h3><p>时薪 ≥200 为「夯」，≥120 为「顶级」，≥70 为「人上人」，≥35 为「NPC」，更低为「拉完了」。沿用参考项目的娱乐分档，仅说明当前假设下的回报；成长和生活偏好由你决定。</p>
       <p>城市缴费参数为历史示例，并非实时政策。北京参考 2025 年社保与 2025–2026 年度公积金，其他城市需自行设置基数上下限。股票单独计税有政策条件；请核对实际合同和适用政策。</p>
-      <p className="source-credit">计算方法：<a href="https://sherry-roar.github.io/offer-calculate/" target="_blank" rel="noreferrer">sherry-roar / Offer 等效薪资计算器 ↗</a>（MIT）。界面为原创像素牌桌设计，灵感来自 Balatro。</p>
+      <p className="source-credit">计算方法：<a href="https://sherry-roar.github.io/offer-calculate/" target="_blank" rel="noreferrer">sherry-roar / Offer 等效薪资计算器 ↗</a>（MIT）；假期抵扣参考 <a href="https://github.com/zippland/worth-calculator" target="_blank" rel="noreferrer">zippland / worth-calculator ↗</a>（MIT）。界面为原创像素牌桌设计，灵感来自 Balatro。</p>
     </div>
   </dialog>;
 }
@@ -205,8 +205,8 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
     {offer.error && <div className="input-error" role="alert"><span>{offer.error}</span>{offer.errorField && <button onClick={() => requestFocus(offer.errorField)}>定位输入 ↗</button>}</div>}
     <div className="editor-scroll" key={offer.id}><div className="editor-columns">
       <section className="editor-column income-column" aria-labelledby="income-heading"><h2 id="income-heading" className="column-heading">01 <span>收入</span></h2>
-        <table className="shared-income-table monthly-income-table"><caption><span>按月收入</span><strong data-testid="monthly-income-total">{totals.recurringAnnual === null ? '—' : scaledMoney(totals.recurringAnnual, compactMoney)}<small> / 年</small></strong></caption>
-          <thead><tr><th scope="col">项目 / 全年合计</th><th scope="col">金额 · {compactMoney ? '千元' : '元'} / 月</th><th scope="col">发放月数</th></tr></thead>
+        <table className="shared-income-table monthly-income-table"><caption><span>按月收入</span><strong data-testid="monthly-income-total">{totals.recurringAnnual === null ? '—' : scaledMoney(totals.recurringAnnual, compactMoney)}</strong></caption>
+          <thead><tr><th scope="col">项目 / 全年合计</th><th scope="col"><span className="income-heading-pair"><span>金额</span><span>{compactMoney ? '千元' : '元'} / 月</span></span></th><th scope="col"><span className="income-heading-pair"><span>发放月数</span><span>月</span></span></th></tr></thead>
           <tbody>{product('monthlyBase', 'salaryMonths', '月固定工资', { tableMode: true, leftStep: 500, rightStep: .5 })}</tbody>
           <tbody id={offer.id + '-monthly-extra'} hidden={!monthlyExpanded} data-income-extra="monthly">
             {product('monthlyAllowance', 'allowanceMonths', '月补贴', { tableMode: true, rightMax: 12, rightStep: 1 })}
@@ -214,7 +214,7 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
           <tfoot><tr><td colSpan="3"><ActionButton className="income-expand" aria-expanded={monthlyExpanded} aria-controls={offer.id + '-monthly-extra'} onClick={() => setMonthlyExpanded(value => !value)}>{monthlyExpanded ? '− 收起月补贴' : '+ 展开月补贴'}</ActionButton></td></tr></tfoot>
         </table>
         <table className="shared-income-table annual-income-table"><caption><span>一次性收入 / 本年实现价值</span><strong data-testid="annual-income-total">{totals.annual === null ? '—' : scaledMoney(totals.annual, compactMoney)}</strong></caption>
-          <thead><tr><th scope="col">项目 / 折算价值</th><th scope="col">名义金额 · {compactMoney ? '万元' : '元'}</th><th scope="col">兑现系数</th></tr></thead>
+          <thead><tr><th scope="col">项目 / 折算价值</th><th scope="col"><span className="income-heading-pair"><span>名义金额</span><span>{compactMoney ? '万元' : '元'}</span></span></th><th scope="col"><span className="income-heading-pair"><span>兑现系数</span><span>×</span></span></th></tr></thead>
           <tbody>{product('annualBonus', 'bonusFactor', '年终奖', { tableMode: true, rightMax: 1, rightStep: .05, tax: select('bonusTax', [['separate', '奖金单独计税'], ['comprehensive', '并入综合所得']], '年终奖计税方式', true) })}</tbody>
           <tbody id={offer.id + '-annual-extra'} hidden={!annualExpanded} data-income-extra="annual">
             {annualIncomeRows.map(([left, right, title, tax, choices]) => product(left, right, title, { tableMode: true, rightMax: 1, rightStep: .05, tax: tax ? select(tax, choices, labels[tax], true) : <span className="tax-symbol tax-symbol-static" title="非现金福利：不计现金个税" aria-label="非现金福利不计现金个税">免</span> }))}
@@ -226,12 +226,13 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
       <section className="editor-column time-column" aria-labelledby="time-heading"><h2 id="time-heading" className="column-heading">02 <span>工时</span></h2>
         {product('weekdayHours', 'weekdayDays', '工作日工时', { leftUnit: '小时 / 天', rightUnit: '天 / 周', leftMax: 24, rightMax: 5, leftStep: .5, rightStep: .5, heatUnit: 'hours', format: value => scoreNumber(value) + ' h / 周' })}
         {product('weekendHours', 'weekendDays', '周末加班', { leftUnit: '小时 / 天', rightUnit: '天 / 周', leftMax: 24, rightMax: 2, leftStep: .5, rightStep: .5, heatUnit: 'hours', format: value => scoreNumber(value) + ' h / 周' })}
+        <div className="field-grid holiday-fields" aria-label="年度假期">{['annualLeave', 'publicHolidays', 'paidSickLeave'].map(field => number(field, { unit: '天 / 年', max: 366, step: 1 }))}</div>
         <div className="field-grid preference-fields">
           {select('growth', coefficientOptions(offer.input.growth, [[1.3, '1.30 顶级成长'], [1.15, '1.15 良好成长'], [1, '1.00 普通'], [.9, '0.90 较弱'], [.8, '0.80 消耗型']]), '发展前景')}
           {select('locationFactor', coefficientOptions(offer.input.locationFactor, [[1.3, '1.30 非常喜欢'], [1.15, '1.15 比较喜欢'], [1, '1.00 中性'], [.9, '0.90 不太喜欢'], [.8, '0.80 较不适应']]), '生活偏好')}
         </div>
-        <TextResults rows={[["实际周工时", r ? r.wh.actual.toFixed(1) + ' h' : '—'], ['加权周工时', r ? r.wh.weighted.toFixed(1) + ' h' : '—']]} />
-        <p className="field-help">工作日超出 8 小时按 1.5 倍、周末按 2 倍加权。成长与生活偏好以 1 为中性值。</p>
+        <TextResults rows={[["实际周工时", r ? r.wh.actual.toFixed(1) + ' h' : '—'], ['加权周工时', r ? r.wh.weighted.toFixed(1) + ' h' : '—'], ['假期折算', r ? scoreNumber(r.wh.leaveDays) + ' 天' : '—'], ['全年工作日', r ? scoreNumber(r.wh.workingDays) + ' 天' : '—'], ['实际全年工时', r ? scoreNumber(r.wh.annualActual) + ' h' : '—'], ['加权全年工时', r ? scoreNumber(r.wh.annualWeighted) + ' h' : '—']]} />
+
       </section>
       <section className="editor-column fees-column" aria-labelledby="fees-heading"><h2 id="fees-heading" className="column-heading">03 <span>税费</span></h2>
         <div className="field-grid fees-base-fields">{select('city', Object.entries(cities), '工作城市')}{select('baseMode', [['salary', '按月薪估算并限额'], ['custom', '手动输入基数']], '缴费基数')}
@@ -284,10 +285,8 @@ function SortControl({ settings, configure }) {
     <div className="sort-modes" role="group" aria-label="排序模式">{[['custom', '自定义'], ['automatic', '自动']].map(([value, title]) =>
       <ActionButton key={value} aria-label={title + '排序'} aria-pressed={mode === value} onClick={() => configure({ mode: value })}>{title}</ActionButton>)}
     </div>
-    {mode !== 'custom' && <>
-      <PixelSelect offer={{ id: 'hand-sort', input: { criterion: settings.criterion } }} field="criterion" label="排序依据" options={SORT_OPTIONS} update={(_, value) => configure({ criterion: value })} />
-      <div className="sort-direction" aria-label="排序方向">{[['desc', '降序 ↓'], ['asc', '升序 ↑']].map(([value, label]) => <ActionButton key={value} aria-pressed={settings.direction === value} onClick={() => configure({ direction: value })}>{label}</ActionButton>)}</div>
-    </>}
+    <div className="sort-rule-list" role="group" aria-label="排序依据">{SORT_OPTIONS.map(([value, label]) => <ActionButton key={value} aria-pressed={mode !== 'custom' && settings.criterion === value} onClick={() => configure({ mode: 'automatic', criterion: value })}>{label}</ActionButton>)}</div>
+    <div className="sort-direction" aria-label="排序方向">{[['desc', '降序 ↓'], ['asc', '升序 ↑']].map(([value, label]) => <ActionButton key={value} disabled={mode === 'custom'} aria-pressed={settings.direction === value} onClick={() => configure({ direction: value })}>{label}</ActionButton>)}</div>
   </div></details>;
 }
 
@@ -439,7 +438,7 @@ export default function App() {
       <div className="sidebar-brand"><span className="brand-mark" aria-hidden="true">♠</span><div><h1><span>Offer</span> <span>Joker</span></h1></div></div>
       <div className="sidebar-offer-count" aria-label="Offer 数量"><span>OFFER</span><strong>{offers.length}<small> / {MAX_OFFERS}</small></strong></div>
       <SortControl settings={ui.sort} configure={configureSort} />
-      <section className="sidebar-tools" aria-label="牌桌操作"><h2>牌桌操作</h2><ActionButton disabled={offers.length >= MAX_OFFERS} onClick={add}>＋ 新增 Offer</ActionButton><ActionButton disabled={!active || offers.length >= MAX_OFFERS} onClick={duplicate}>⧉ 复制当前</ActionButton><ActionButton disabled={!discarded.length || offers.length >= MAX_OFFERS} onClick={undo}>↶ 撤销删除</ActionButton></section>
+
       <div className="side-bottom"><span className="save-indicator"><i />{saved ? '自动保存在此浏览器' : '存储不可用，仅当前会话'}</span><small>示例与缴费预设仅作参考</small></div>
       <div className="sidebar-actions">
         <ActionButton className="sidebar-button help-button" onClick={() => dialogRef.current.showModal()}>? 帮助</ActionButton>

@@ -743,3 +743,13 @@ button{touch-action:manipulation}
 .hand-row .offer-hand{gap:8px}
 .offer-hand.is-dense .offer-slot+.offer-slot{margin-left:min(0px,calc((100% - var(--card-width))/(max(2,var(--offer-count)) - 1) - var(--card-width) - 8px))}
 .shared-income-table caption{padding-bottom:8px}
+/* Preserve first-row alignment while separating expanded income rows. */
+.shared-income-table tbody+tbody tr:first-child th,.shared-income-table tbody+tbody tr:first-child td,.shared-income-table tbody tr+tr th,.shared-income-table tbody tr+tr td{padding-top:12px}
+.income-heading-pair{display:flex;justify-content:space-between;gap:4px;align-items:baseline;color:#b9cebf;font-size:9px}
+.income-heading-pair>span:last-child{font-size:8px;color:#91afa0}
+.sort-rule-list{display:grid;gap:6px;margin-top:13px}
+.sort-rule-list button{font:inherit;font-size:10px;text-align:left;border:2px solid #50615e;border-radius:4px;background:#213033;color:#d4dccb;padding:7px}
+.sort-rule-list button[aria-pressed=true]{background:#ce9229;color:#fff4cf;border-color:#ffca62}
+@media(max-width:800px){.sort-rule-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin-top:6px}.sort-rule-list button{padding:5px;font-size:9px}}
+.holiday-fields{grid-template-columns:repeat(3,minmax(0,1fr));margin:13px 0}
+.holiday-fields .input-suffix{font-size:8px;white-space:nowrap}

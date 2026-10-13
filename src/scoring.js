@@ -2,7 +2,7 @@
 // Keep the unrounded numbers; formatting belongs to the view.
 export function scoreFactors(result, input) {
   const chips = result.afterTaxValue / 2080;
-  const time = 40 / result.wh.weighted;
+  const time = result.wh.annualWeighted == null ? 40 / result.wh.weighted : 2080 / result.wh.annualWeighted;
   const growth = Number(input.growth ?? 1);
   const location = Number(input.locationFactor ?? 1);
   const mult = time * growth * location;

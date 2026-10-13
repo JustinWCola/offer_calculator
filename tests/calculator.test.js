@@ -79,7 +79,7 @@ test('documented Seed offer reproduces the reference result', () => {
   assert.equal(result.taxEquity, 127080);
   closeTo(result.taxTotal, 695883.435);
   closeTo(result.afterTaxValue, 1632390.865);
-  assert.deepEqual(result.wh, { actual: 45, weighted: 47.5 });
+  assert.deepEqual(result.wh, { actual: 45, weighted: 47.5, annualActual: 2340, annualWeighted: 2470, scheduledDays: 260, workingDays: 260, leaveDays: 0 });
   closeTo(result.eqPretax, 2042105.2631578946);
   closeTo(result.eqAfter, 1374644.9389473684);
   closeTo(result.eqAfterHourly, 660.8869898785425);
@@ -94,7 +94,7 @@ test('855 has an identity time factor with zero custom-city contributions', () =
   assert.equal(result.taxComp, 3480);
   assert.equal(result.socialTotal, 0);
   assert.equal(result.afterTaxValue, 116520);
-  assert.deepEqual(result.wh, { actual: 40, weighted: 40 });
+  assert.deepEqual(result.wh, { actual: 40, weighted: 40, annualActual: 2080, annualWeighted: 2080, scheduledDays: 260, workingDays: 260, leaveDays: 0 });
   assert.equal(result.eqPretax, 120000);
   assert.equal(result.eqAfter, 116520);
   closeTo(result.eqAfterHourly, 56.01923076923077);
@@ -102,7 +102,7 @@ test('855 has an identity time factor with zero custom-city contributions', () =
 
 test('weekday overtime and weekend work receive 1.5 and 2 weights', () => {
   const result = calculate({ ...standardOffer, weekdayHours: 10, weekendDays: 1, weekendHours: 6 });
-  assert.deepEqual(result.wh, { actual: 56, weighted: 67 });
+  assert.deepEqual(result.wh, { actual: 56, weighted: 67, annualActual: 2912, annualWeighted: 3484, scheduledDays: 312, workingDays: 312, leaveDays: 0 });
   closeTo(result.eqPretax, 71641.79104477611);
   closeTo(result.eqAfter, 69564.1791044776);
   closeTo(result.eqAfterHourly, 33.444316877152694);
@@ -225,4 +225,17 @@ test('invalid monetary values, modes, contribution bounds and work schedules are
   for (const [invalid, error] of cases) assert.throws(() => calculate({ ...standardOffer, ...invalid }), error);
   for (const fn of [annualTax, bonusTax, rateOffer]) assert.throws(() => fn(Infinity), /有限数字/);
   assert.throws(() => calculate({ ...standardOffer, weekdayHours: Number.MIN_VALUE, weekdayDays: 1 }), /有限数字/);
+});
+
+test('vacation discounts follow 52 weeks and 0.6 paid sick-leave weight without affecting taxes', () => {
+  const input = {city:'custom', monthlyBase:10000, salaryMonths:12, weekdayDays:5, weekdayHours:8};
+  const base = calculate(input), result = calculate({...input,annualLeave:5,publicHolidays:13,paidSickLeave:3});
+  assert.equal(result.wh.workingDays,240.2);
+  assert.ok(Math.abs(result.wh.annualWeighted-1921.6)<1e-9);
+  assert.ok(Math.abs(result.eqAfterHourly - result.afterTaxValue/1921.6)<1e-9);
+  assert.equal(result.taxTotal,base.taxTotal);
+  assert.equal(result.socialTotal,base.socialTotal);
+  assert.equal(calculate({...input,annualLeave:0,publicHolidays:0,paidSickLeave:0}).eqAfterHourly,base.eqAfterHourly);
+  assert.throws(()=>calculate({...input,annualLeave:260}),/全年工作日/);
+  assert.throws(()=>calculate({...input,paidSickLeave:-1}),/paidSickLeave/);
 });
