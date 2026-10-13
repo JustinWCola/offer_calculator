@@ -248,6 +248,7 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
         </div></FoldSection>
       </section>
     </div>
+    </div>
     <FoldSection className="result-details" id={offer.id + '-result-extra'} label="完整结果与税费明细">
       <TextResults rows={[["价值折算税前总包", amount(r?.adjustedTC)], ['税前 855 等效年收入', amount(r?.eqPretax)], ['税后 855 等效年收入', amount(r?.eqAfter)],
         ['等效税前时薪', r ? money(r.eqPretax / 2080) + ' / h' : '—'], ['等效税后时薪', r ? money(r.eqAfterHourly) + ' / h' : '—'], ['税前名义总包', amount(r?.nominalTC)],
@@ -263,7 +264,6 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
       <TextResults className="contribution-breakdown" rows={[["社保月基数", amount(r?.appliedSocialBase)], ['公积金月基数', amount(r?.appliedFundBase)], ...[['养老 / 年', 'pension'], ['医疗 / 年（含固定费）', 'medical'], ['失业 / 年', 'unemployment'], ['其他社保 / 年', 'otherSocial'], ['公积金 / 年', 'fund'], ['个人全年缴费', 'socialTotal']].map(([label, key]) => [label, amount(r?.[key])])]} />
       <p className="field-help">{r?.rating.comment} 税后总包包含折算后的权益与福利，不等同于现金到账。855 为每天 8 小时、每周 5 天；全年比较按 2080 小时。</p>
     </FoldSection>
-    </div>
   </section>;
 }
 
