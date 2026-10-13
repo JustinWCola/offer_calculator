@@ -335,7 +335,10 @@ export default function App() {
   const select = id => { if (!suppressClick.current) setUi(current => ({ ...current, activeId: id })); };
   const update = (field, value) => setOffers(current => current.map(o => o.id !== active.id ? o : field === 'name' ? { ...o, name: value } :
     { ...o, input: { ...o.input, [field]: value, ...(field === 'city' && value !== 'custom' ? presetFields(value) : {}) } }));
-  function requestFocus(field) { setPendingFocus(field); }
+  function requestFocus(field) {
+    if (matchMedia('(max-width:800px)').matches) document.querySelector('.result-details .fold-toggle[aria-expanded=true]')?.click();
+    setPendingFocus(field);
+  }
   function add() {
     if (offers.length >= MAX_OFFERS) return notify('牌槽已满，先弃置一张再抽牌。');
     let index = 1; while (offers.some(o => o.name === '新 Offer ' + index)) index++;
