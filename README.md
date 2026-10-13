@@ -2,7 +2,7 @@
 
 一个像素牌桌风格的 Offer 比较计算器，使用 React 和 Vite。支持最多十份 Offer：年收入、税费、个人五险一金、权益兑现折扣及加权工时共同决定等效税后时薪。起始的两份 Offer 为虚构、可编辑示例。
 
-在线地址：https://justinwcola.github.io/offer_calculator/
+在线地址：https://justinwcola.github.io/offer_joker/
 
 ## 网页发布
 
