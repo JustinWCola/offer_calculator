@@ -4,7 +4,7 @@ import PixelSelect from './SelectField.jsx';
 import { calculate, cityPresets } from './calculator.js';
 import NumericInput from './NumericInput.jsx';
 import ActionButton from './ActionButton.jsx';
-import { SORT_OPTIONS, sortOffers, productHeat, productValue, displayedOffers, orderByIds, moveOffer, configureSorting, migrateManualOrder, incomeTotals } from './table-utils.js';
+import { SORT_OPTIONS, productHeat, productValue, displayedOffers, orderByIds, moveOffer, configureSorting, migrateManualOrder, incomeTotals } from './table-utils.js';
 
 const STORAGE_KEY = 'offer-deck:v1';
 const MAX_OFFERS = 10;
@@ -434,13 +434,12 @@ export default function App() {
   const clicked = action => { if (!suppressClick.current) action(); };
 
   const metric = ui.sort.criterion === 'custom' ? ui.sort.lastCriterion : ui.sort.criterion;
-  const leaders = sortOffers(evaluated, metric, ui.sort.direction).slice(0, 3);
   return <MotionContext.Provider value={ui.animations}><div className={'app-shell table-layout ' + (!ui.animations ? 'motion-off' : '')}>
     <aside className="sidebar" aria-label="标题、帮助与选项">
       <div className="sidebar-brand"><span className="brand-mark" aria-hidden="true">♠</span><div><h1><span>Offer</span> <span>Joker</span></h1></div></div>
       <div className="sidebar-offer-count" aria-label="Offer 数量"><span>OFFER</span><strong>{offers.length}<small> / {MAX_OFFERS}</small></strong></div>
       <SortControl settings={ui.sort} configure={configureSort} />
-      <section className="sidebar-comparison" aria-label="比较速览"><h2>比较速览</h2><small>{SORT_OPTIONS.find(([key]) => key === metric)?.[1]} {ui.sort.direction === 'asc' ? '↑' : '↓'}</small>{leaders.map((offer, index) => <button key={offer.id} onClick={() => select(offer.id)} aria-label={'编辑 ' + offer.name}><span>{index + 1}. {offer.name}</span><strong>{cardMetric(offer, metric, ui.compactMoney)}</strong></button>)}</section>
+      <section className="sidebar-tools" aria-label="牌桌操作"><h2>牌桌操作</h2><ActionButton disabled={offers.length >= MAX_OFFERS} onClick={add}>＋ 新增 Offer</ActionButton><ActionButton disabled={!active || offers.length >= MAX_OFFERS} onClick={duplicate}>⧉ 复制当前</ActionButton><ActionButton disabled={!discarded.length || offers.length >= MAX_OFFERS} onClick={undo}>↶ 撤销删除</ActionButton></section>
       <div className="side-bottom"><span className="save-indicator"><i />{saved ? '自动保存在此浏览器' : '存储不可用，仅当前会话'}</span><small>示例与缴费预设仅作参考</small></div>
       <div className="sidebar-actions">
         <ActionButton className="sidebar-button help-button" onClick={() => dialogRef.current.showModal()}>? 帮助</ActionButton>

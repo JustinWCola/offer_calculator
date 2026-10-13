@@ -723,3 +723,23 @@ button{touch-action:manipulation}
 .sidebar-comparison button span{display:block;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sidebar-comparison button strong{display:block;color:#ffca62;font-weight:normal;font-size:12px;margin-top:4px}
 @media(max-width:800px){.sidebar-brand h1{font-size:18px}.sidebar-brand h1 span{display:inline}.sidebar-comparison{display:none}}
+/* Match income title, operand header and box spacing to the work counters. */
+.shared-income-table caption{padding:0 0 5px;line-height:17px}
+.shared-income-table thead th{padding:0 4px 5px;line-height:12px}
+.shared-income-table tbody th,.shared-income-table tbody td{padding-top:0;padding-bottom:0}
+.shared-income-table .tax-symbol{height:18px;width:20px;font-size:9px}
+.shared-income-table output{margin-top:3px;line-height:12px}
+.sidebar-brand{justify-content:center;align-items:center;padding:12px 0 18px}
+.sidebar-brand>div{display:flex;align-items:center}
+.sidebar-brand h1{text-align:center;line-height:1.15}
+.sidebar-tools{margin-top:16px;padding-top:12px;border-top:2px solid #1b2729}
+.sidebar-tools h2{font-size:14px;font-weight:normal;color:#ffca62;margin:0 0 9px}
+.sidebar-tools button{display:block;width:100%;margin-top:8px;padding:9px 6px;background:#213033;border:2px solid #50615e;border-radius:4px;color:#d4dccb;font:inherit;font-size:11px;text-align:left}
+.sidebar-tools button:disabled{opacity:.35}
+.offer-hand{--card-width:89px;gap:8px}
+.hand-row .offer-slot,.offer-hand.is-dense .offer-slot{width:var(--card-width);flex:0 0 var(--card-width)}
+.offer-hand .offer-slot+.offer-slot{margin-left:min(0px,calc((100% - var(--card-width))/(max(2,var(--offer-count)) - 1) - var(--card-width) - 8px))}
+@media(max-width:800px){.sidebar-tools{display:none}.sidebar-brand{padding:0;justify-content:flex-start}.offer-hand{--card-width:72px}.offer-hand.is-dense .slot-name{font-size:10px}.offer-hand.is-dense .slot-score{font-size:8px}.offer-hand .slot-art{width:35px;height:35px}.offer-hand .slot-art svg{width:30px;height:30px}.offer-hand .slot-corner{display:block}}
+.hand-row .offer-hand{gap:8px}
+.offer-hand.is-dense .offer-slot+.offer-slot{margin-left:min(0px,calc((100% - var(--card-width))/(max(2,var(--offer-count)) - 1) - var(--card-width) - 8px))}
+.shared-income-table caption{padding-bottom:8px}
