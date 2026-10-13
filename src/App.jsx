@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import SurfaceEffects, { CardFoil } from './SurfaceEffects.jsx';
 import Flame, { MotionContext } from './Flame.jsx';
 import PixelSelect from './SelectField.jsx';
 import { calculate, cityPresets } from './calculator.js';
@@ -117,7 +118,7 @@ function MethodDialog({ dialogRef }) {
       <p>牌桌计分只是同一公式的拆分展示。显示值经过取整，最终结果始终按未取整数值计算；税费和兑现折扣已经计入蓝色底数。</p>
       <h3>④ 看牌面，也看自己</h3><p>时薪 ≥200 为「夯」，≥120 为「顶级」，≥70 为「人上人」，≥35 为「NPC」，更低为「拉完了」。沿用参考项目的娱乐分档，仅说明当前假设下的回报；成长和生活偏好由你决定。</p>
       <p>城市缴费参数为历史示例，并非实时政策。北京参考 2025 年社保与 2025–2026 年度公积金，其他城市需自行设置基数上下限。股票单独计税有政策条件；请核对实际合同和适用政策。</p>
-      <p className="source-credit">计算方法：<a href="https://sherry-roar.github.io/offer-calculate/" target="_blank" rel="noreferrer">sherry-roar / Offer 等效薪资计算器 ↗</a>（MIT）；假期抵扣参考 <a href="https://github.com/zippland/worth-calculator" target="_blank" rel="noreferrer">zippland / worth-calculator ↗</a>（MIT）。界面为原创像素牌桌设计，灵感来自 Balatro。</p>
+      <p className="source-credit">计算方法：<a href="https://sherry-roar.github.io/offer-calculate/" target="_blank" rel="noreferrer">sherry-roar / Offer 等效薪资计算器 ↗</a>（MIT）；假期抵扣参考 <a href="https://github.com/zippland/worth-calculator" target="_blank" rel="noreferrer">zippland / worth-calculator ↗</a>（MIT）。数字字体 M6X11 由 Daniel Linssen 制作。界面为原创像素牌桌设计，灵感来自 Balatro。</p>
     </div>
   </dialog>;
 }
@@ -134,10 +135,10 @@ function loadUi() {
     if (!activeId && raw.criterion !== 'custom' && raw.automatic === false && Array.isArray(raw.manualOrder)) {
       try { const first = JSON.parse(localStorage.getItem(STORAGE_KEY))?.[0]; if (typeof first?.id === 'string') activeId = first.id; } catch { /* Leave damaged storage to the normal offer loader. */ }
     }
-    return { activeId, animations: value.animations !== false, notes: value.notes === true, compactMoney: value.compactMoney === true,
+    return { activeId, animations: value.animations !== false, notes: value.notes === true, compactMoney: value.compactMoney === true, backgroundEffect: value.backgroundEffect !== false, crtEffect: value.crtEffect !== false,
       sort: { criterion, lastCriterion: SORT_OPTIONS.some(([key]) => key === raw.lastCriterion) ? raw.lastCriterion : previousCriterion, direction: raw.direction === 'asc' ? 'asc' : 'desc', automatic: criterion !== 'custom' && raw.automatic === true,
         manualOrder: Array.isArray(raw.manualOrder) ? raw.manualOrder.filter(id => typeof id === 'string') : [] } };
-  } catch { return { activeId: null, animations: true, notes: false, compactMoney: false, sort: defaultSort }; }
+  } catch { return { activeId: null, animations: true, notes: false, compactMoney: false, backgroundEffect: true, crtEffect: true, sort: defaultSort }; }
 }
 function ProductCounter({ offer, left, right, title, leftLabel, rightLabel, leftUnit = '元', rightUnit = '×',
   heatUnit = 'income', leftMax, rightMax, leftStep = 100, rightStep = .05, format = money, update, notes = false, explanation, tableMode = false, tax, compactMoney = false }) {
@@ -193,7 +194,7 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
       <div className="summary-identity"><div className="editor-name"><label className="sr-only" htmlFor={offer.id + '-name'}>Offer 名称</label>
         <input id={offer.id + '-name'} value={offer.name} maxLength={32} onChange={e => update('name', e.target.value)} placeholder="为这份 Offer 命名" />
         <span>{cities[offer.input.city]}{!r && ' · 输入待完善'}</span></div>
-        <div className="summary-actions">{r && <span className={'rating-stamp rating-' + (r.eqAfterHourly >= 200 ? 'legend' : r.eqAfterHourly >= 120 ? 'top' : r.eqAfterHourly >= 70 ? 'good' : r.eqAfterHourly >= 35 ? 'normal' : 'low')} role="status" aria-label={'Offer 评价：' + r.rating.label} title={r.rating.comment}><span>OFFER 评级</span><strong>{r.rating.label}</strong></span>}<ActionButton className="icon-button delete-offer" onClick={discard} aria-label="删除当前 Offer" title="删除当前 Offer"><span aria-hidden="true">×</span><small>删除</small></ActionButton>
+        <div className="summary-actions">{r && <RatingSeal result={r} />}<ActionButton className="icon-button delete-offer" onClick={discard} aria-label="删除当前 Offer" title="删除当前 Offer"><span aria-hidden="true">×</span><small>删除</small></ActionButton>
         <ActionButton className="icon-button duplicate-offer" onClick={duplicate} disabled={!canDuplicate} aria-label="复制当前 Offer" title="复制当前 Offer"><span aria-hidden="true">⧉</span><small>复制</small></ActionButton><ActionButton className="icon-button reset-offer" onClick={reset} aria-label="重置当前 Offer" title="重置当前 Offer"><span aria-hidden="true">↻</span><small>重置</small></ActionButton></div>
       </div>
       <div className="summary-metrics" aria-live="polite">
@@ -267,9 +268,16 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
   </section>;
 }
 
+function RatingSeal({ result, card = false }) {
+  if (!result) return null;
+  const symbols = result.eqAfterHourly >= 200 ? '♠' : result.eqAfterHourly >= 120 ? '♥' : result.eqAfterHourly >= 70 ? '♦' : result.eqAfterHourly >= 35 ? '♣' : '×';
+  return <span className={'rating-seal ' + (card ? 'card-seal' : 'editor-seal')} role="status" aria-label={'Offer 评价：' + result.rating.label} title={result.rating.comment}><span aria-hidden="true">{symbols}</span><strong>{result.rating.label}</strong></span>;
+}
+
 function OfferSlot({ offer, index, selected, select, dragHandlers, isDragging, insertionBefore, move, metric, compactMoney }) {
   return <button className={'offer-slot ' + (selected ? 'is-selected ' : '') + (isDragging ? 'is-dragging ' : '') + (insertionBefore ? 'insert-before' : '')} data-offer-id={offer.id}
     aria-label={'选择 ' + (offer.name || '未命名 Offer')} aria-pressed={selected} onClick={select} onKeyDown={e => { if (e.altKey && ['ArrowLeft', 'ArrowRight'].includes(e.key)) { e.preventDefault(); move(e.key === 'ArrowLeft' ? -1 : 1); } }} {...dragHandlers}>
+    <CardFoil active={selected} /><RatingSeal result={offer.result} card />
     <span className={'slot-corner ' + (index % 2 ? 'red-suit' : '')}>{suits[index % suits.length]}<small>{index + 1}</small></span>
     <span className="slot-art" aria-hidden="true"><svg viewBox="0 0 48 48" shapeRendering="crispEdges"><path fill="#009dff" d="M4 8h12v4h8v16H12V16H4z" /><path fill="#fe5f55" d="M32 4h12v16h-8v8H24V12h8z" /><path fill="#f3b958" d="M4 4h8v8H4zM36 0h8v8h-8z" /><path fill="#ead7a4" d="M12 24h24v16H12z" /><path fill="#374244" d="M16 28h4v4h-4zM28 28h4v4h-4zM20 36h8v4h-8z" /><path fill="#4bc292" d="M8 40h12v8H8zM28 40h12v8H28z" /></svg></span>
     <strong className="slot-name">{offer.name || '未命名 Offer'}</strong><span className="slot-score">{cardMetric(offer, metric, compactMoney)}</span>
@@ -448,7 +456,7 @@ export default function App() {
   const clicked = action => { if (!suppressClick.current) action(); };
 
   const metric = ui.sort.criterion === 'custom' ? ui.sort.lastCriterion : ui.sort.criterion;
-  return <MotionContext.Provider value={ui.animations}><div className={'app-shell table-layout ' + (!ui.animations ? 'motion-off' : '')}>
+  return <MotionContext.Provider value={ui.animations}><SurfaceEffects background={ui.backgroundEffect} crt={ui.crtEffect} /><div className={'app-shell table-layout ' + (!ui.animations ? 'motion-off' : '')}>
     <aside className="sidebar" aria-label="标题、帮助与选项">
       <div className="sidebar-brand"><span className="brand-mark" aria-hidden="true">♠</span><div><h1><span>Offer</span> <span>Joker</span></h1></div></div>
       <div className="sidebar-offer-count" aria-label="Offer 数量"><span>OFFER</span><strong>{offers.length}<small> / {MAX_OFFERS}</small></strong></div>
@@ -486,6 +494,8 @@ export default function App() {
       <div className="dialog-header"><h2 id="options-title">选项</h2><ActionButton className="dialog-close" aria-label="关闭选项" onClick={() => optionsRef.current.close()}>×</ActionButton></div>
       <div className="options-content">
         <label><input type="checkbox" checked={ui.animations} onChange={e => setUi(current => ({ ...current, animations: e.target.checked }))} />计分与火焰动效</label>
+        <label><input type="checkbox" checked={ui.backgroundEffect} onChange={e => setUi(current => ({ ...current, backgroundEffect: e.target.checked }))} />流动背景效果</label>
+        <label><input type="checkbox" checked={ui.crtEffect} onChange={e => setUi(current => ({ ...current, crtEffect: e.target.checked }))} />CRT 屏幕效果</label>
         <label><input type="checkbox" checked={ui.notes} onChange={e => setUi(current => ({ ...current, notes: e.target.checked }))} />显示公式说明</label>
         <label><input type="checkbox" checked={ui.compactMoney} onChange={e => setUi(current => ({ ...current, compactMoney: e.target.checked }))} />紧凑金额单位（年度万元／月收入千元）</label>
         <ActionButton onClick={exportResults} disabled={offers.length === 0}>↓ 导出比较结果</ActionButton>

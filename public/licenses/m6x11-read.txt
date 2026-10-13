@@ -1,0 +1,16 @@
+uppercase and lowercase letters
+including numbers and symbols
+
+m6x11plus contains even more characters
+
+average width +6
+ascender height +11
+descender height -3
+x-height +8
+
+use font size 16, 32, 48, etc for m6x11
+use font size 18, 36, 54, etc for m6x11plus
+
+free to use with attribution
+
+a font by Daniel Linssen

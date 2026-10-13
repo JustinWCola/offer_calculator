@@ -3,7 +3,7 @@ import source from './shaders/flame.frag?raw';
 
 export const MotionContext = createContext(true);
 
-// Flame shader: mininxd/Balatro-Button, Apache-2.0. React lifecycle,
+// Flame shader adapted from the user-supplied LÖVE shader. React lifecycle,
 // visibility suspension, resource cleanup and static fallback authored here.
 export default function Flame({ level, color = 'red' }) {
   const canvas = useRef(null), enabled = useContext(MotionContext);
