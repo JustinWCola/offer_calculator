@@ -282,7 +282,7 @@ function OfferSlot({ offer, selected, select, dragHandlers, isDragging, insertio
     aria-label={'选择 ' + (offer.name || '未命名 Offer')} aria-pressed={selected} onClick={select} onKeyDown={e => { if (e.altKey && ['ArrowLeft', 'ArrowRight'].includes(e.key)) { e.preventDefault(); move(e.key === 'ArrowLeft' ? -1 : 1); } }} {...dragHandlers}>
     <RatingSeal result={offer.result} card />
     <span className="slot-corner joker-mark" aria-hidden="true">J<span>O</span><span>K</span><span>E</span><span>R</span></span>
-    <span className="slot-art" aria-hidden="true"><svg viewBox="0 0 48 48" shapeRendering="crispEdges"><path fill="#009dff" d="M4 8h12v4h8v16H12V16H4z" /><path fill="#fe5f55" d="M32 4h12v16h-8v8H24V12h8z" /><path fill="#f3b958" d="M4 4h8v8H4zM36 0h8v8h-8z" /><path fill="#ead7a4" d="M12 24h24v16H12z" /><path fill="#374244" d="M16 28h4v4h-4zM28 28h4v4h-4zM20 36h8v4h-8z" /><path fill="#4bc292" d="M8 40h12v8H8zM28 40h12v8H28z" /></svg></span>
+    <span className="slot-art" aria-hidden="true"><img src={import.meta.env.BASE_URL + 'joker.svg'} alt="" /></span>
     <strong className="slot-name">{offer.name || '未命名 Offer'}</strong><span className="slot-score">{cardMetric(offer, metric, compactMoney)}</span>
   </button>;
 }
@@ -456,7 +456,7 @@ export default function App() {
   const metric = ui.sort.criterion === 'custom' ? ui.sort.lastCriterion : ui.sort.criterion;
   return <MotionContext.Provider value={ui.animations}><SurfaceEffects background={ui.backgroundEffect} crt={ui.crtEffect} /><div className={'app-shell table-layout ' + (!ui.animations ? 'motion-off' : '')}>
     <aside className="sidebar" aria-label="标题、帮助与选项">
-      <div className="sidebar-brand"><span className="brand-mark" aria-hidden="true">♠</span><div><h1><span>Offer</span> <span>Joker</span></h1></div></div>
+      <div className="sidebar-brand"><span className="brand-mark" aria-hidden="true"><img src={import.meta.env.BASE_URL + 'joker.svg'} alt="" /></span><div><h1><span>Offer</span> <span>Joker</span></h1></div></div>
       <div className="sidebar-links"><a href="https://github.com/JustinWCola/offer_joker" target="_blank" rel="noreferrer">GitHub ↗</a><a href="https://github.com/JustinWCola/offer_joker/blob/main/THIRD_PARTY_NOTICES.md" target="_blank" rel="noreferrer">Licenses ↗</a></div>
       <div className="sidebar-offer-count" aria-label="Offer 数量"><span>OFFER</span><strong>{offers.length}<small> / {MAX_OFFERS}</small></strong></div>
       <SortControl settings={ui.sort} configure={configureSort} />
