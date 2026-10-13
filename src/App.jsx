@@ -224,8 +224,9 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
         <div className="field-grid contribution-fields" aria-label="个人缴费参数">{number('contribMonths', { unit: '月', max: 12, step: 1 })}
           {['pensionRate', 'medicalRate', 'unemploymentRate', 'otherSocialRate', 'fundRate'].map(field => number(field, { unit: '%', max: 100, step: .1 }))}
         </div>
-        <details className="advanced-settings"><summary>缴费上下限与税前扣除</summary><div className="advanced-content">
-          <div className="field-grid">{number('medicalFixed', { step: 1 })}{number('socialMin', { step: 100 })}{number('socialMax', { cap: true, step: 100 })}{number('fundMin', { step: 100 })}{number('fundMax', { cap: true, step: 100 })}{number('specialDeduction', { step: 1000 })}{number('otherDeduction', { step: 1000 })}</div>
+        <div className="field-grid deduction-fields" aria-label="税前扣除">{number('specialDeduction', { step: 1000 })}{number('otherDeduction', { step: 1000 })}</div>
+        <details className="advanced-settings"><summary>缴费上下限与固定医疗费</summary><div className="advanced-content">
+          <div className="field-grid">{number('socialMin', { step: 100 })}{number('socialMax', { cap: true, step: 100 })}{number('fundMin', { step: 100 })}{number('fundMax', { cap: true, step: 100 })}{number('medicalFixed', { step: 1 })}</div>
           <p className="field-help">缴费预设为历史示例，请按实际年度与公司口径调整；基数上限留空表示未设上限。</p>
         </div></details>
       </section>
