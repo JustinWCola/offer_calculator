@@ -1,3 +1,4 @@
+import HelpDialog from './HelpDialog.jsx';
 import React, { useEffect, useRef, useState } from 'react';
 import { NEW_OFFER_INPUT, REFERENCE_INPUT } from './offer-defaults.js';
 import SurfaceEffects from './SurfaceEffects.jsx';
@@ -94,26 +95,6 @@ function SelectField({ offer, field, label, options, update, wide = false }) {
 const taxOptions = [['comprehensive', '并入综合所得'], ['none', '本年不计税']];
 const equityOptions = [['equity', '符合条件股权单独计税'], ...taxOptions];
 
-function MethodDialog({ dialogRef }) {
-  const backdropPressed = useRef(false);
-  return <dialog className="method-dialog" aria-labelledby="rules-title" ref={dialogRef} onPointerDown={e => { backdropPressed.current = e.target === e.currentTarget; }} onClick={e => { if (e.target === e.currentTarget && backdropPressed.current) dialogRef.current.close(); backdropPressed.current = false; }}>
-    <div className="dialog-header"><div><span className="eyebrow">THE RULES</span><h2 id="rules-title">这副牌怎么算？</h2></div>
-      <button className="dialog-close" aria-label="关闭计算规则" onClick={() => dialogRef.current.close()}>×</button></div>
-    <div className="method-content">
-      <h3>使用牌桌</h3><p>点击顶部 Offer 卡牌选择要编辑的报价；选中的卡牌会向上抽出。左侧排序可选择自定义或自动。自动排序随输入变化更新；拖动手牌会采用当前顺序并切换到自定义，关闭自动排序。拖动手牌调整位置，键盘可按 Alt + 左右方向键移动。点击牌槽旁的牌堆新增报价，或将牌堆拖到牌槽；将任意 Offer 拖回牌堆即可删除，编辑区也提供删除按钮。删除后可撤销。键盘用户可以用 Tab 和 Enter 完成同样的操作。</p><p>收入、工时、税费在编辑区并列展示；顶部结果始终可见。蓝色框是底数，红色框是倍率，结果使用完整精度计算。两数相乘后的乘积达到升温范围时，会出现分级火焰；年度收入按项目分别升温：月基本工资全年合计为 12／24／48 万元，月现金补贴全年合计为 0.6／2.4／6 万元，年终奖为 2／6／15 万元，签字费为 2／10／30 万元，股票为 5／20／50 万元，期权为 1／5／15 万元，其他现金为 0.5／2／8 万元，福利为 0.3／1／3 万元。浮动收入使用金额乘兑现系数后的值。工作日每周工时 ≤50／40／32 小时依次升温，周末每周工时 ≤10／5／2 小时依次升温；没有周末加班也会显示旺火，但空值或无效工作安排不触发。火焰只是所设展示规则，不改变税费或计算结果。可以在左侧选项关闭动画。</p><h3>① 先数清筹码</h3><p>名义总包 = 月薪 × 发薪月数 + 补贴 + 奖金 + 签字费 + 本年归属股权 + 其他收入 + 福利。浮动收入再乘以各自的兑现系数，得到价值折算总包。</p>
-      <h3>② 扣掉税费</h3><p>综合所得使用年度七级税率，扣除 60,000 元基本减除费用、个人五险一金及全年税前扣除。奖金可以单独计税，符合条件的股权可以单独按年度税率计税。税费按名义金额估算，税后价值包含折算后的权益与福利，不等于现金到账。</p><p>股票填写本年归属的股票或 RSU 金额；期权填写本年可实现的价值，再分别用兑现系数折算。固定收入包含月基本工资及月现金补贴；浮动收入包含年终奖、签字费、股票、期权等。</p>
-      <h3>③ 让时间也有价格</h3><p>成长与生活偏好以 1 为中性值；全年工作日 =（工作日 + 周末加班日）× 52 − 带薪年假 − 法定假日 − 带薪病假 × 0.6；按剩余工作日比例折算实际及加权全年工时，等效年收入使用 2080 ÷ 加权全年工时。假期天数按占用原计划工作日填写，避免重复扣除；法定假日调休需计入实际工作安排。</p><p>加权周工时 = 工作日正常工时 + 1.5 × 工作日超出 8 小时的工时 + 2 × 周末工时。</p>
-      <div className="formula">税后 855 等效 = 税后价值 × 成长系数 × 生活偏好系数 × 2080 ÷ 加权全年工时<br /><br />等效税后时薪 = 税后 855 等效 ÷ 2,080</div>
-      <p>855 指每天 8 小时、每周 5 天；全年按 52 周比较。加权工时是比较模型，不是加班工资核算，假期按上述规则抵扣，不包含通勤。</p>
-      <div className="formula">蓝色底数 Chips = 税后价值 ÷ 2080<br />红色倍率 Mult = 2080 ÷ 加权全年工时 × 成长系数 × 生活偏好系数<br />Chips × Mult = 等效税后时薪</div>
-      <p>牌桌计分只是同一公式的拆分展示。显示值经过取整，最终结果始终按未取整数值计算；税费和兑现折扣已经计入蓝色底数。</p>
-      <h3>④ 看牌面，也看自己</h3><p>时薪 ≥200 为「夯」，≥120 为「顶级」，≥70 为「人上人」，≥35 为「NPC」，更低为「拉完了」。沿用参考项目的娱乐分档，仅说明当前假设下的回报；成长和生活偏好由你决定。</p>
-      <p>城市缴费参数为历史示例，并非实时政策。北京参考 2025 年社保与 2025–2026 年度公积金，其他城市需自行设置基数上下限。股票单独计税有政策条件；请核对实际合同和适用政策。</p>
-      <p className="source-credit">计算方法：<a href="https://sherry-roar.github.io/offer-calculate/" target="_blank" rel="noreferrer">sherry-roar / Offer 等效薪资计算器 ↗</a>（MIT）；假期抵扣参考 <a href="https://github.com/zippland/worth-calculator" target="_blank" rel="noreferrer">zippland / worth-calculator ↗</a>（MIT）。数字字体 M6X11 由 Daniel Linssen 制作。界面为原创像素牌桌设计，灵感来自 Balatro。</p>
-    </div>
-  </dialog>;
-}
-
 
 const UI_KEY = 'offer-deck:table-ui:v3';
 const defaultSort = { criterion: 'custom', direction: 'desc', automatic: false, manualOrder: [], lastCriterion: 'hourly' };
@@ -126,13 +107,13 @@ function loadUi() {
     if (!activeId && raw.criterion !== 'custom' && raw.automatic === false && Array.isArray(raw.manualOrder)) {
       try { const first = JSON.parse(localStorage.getItem(STORAGE_KEY))?.[0]; if (typeof first?.id === 'string') activeId = first.id; } catch { /* Leave damaged storage to the normal offer loader. */ }
     }
-    return { activeId, animations: value.animations !== false, notes: value.notes === true, compactMoney: value.compactMoney === true, backgroundEffect: value.backgroundEffect !== false, crtEffect: value.crtEffect !== false,
+    return { activeId, animations: value.animations !== false, compactMoney: value.compactMoney === true, backgroundEffect: value.backgroundEffect !== false, crtEffect: value.crtEffect !== false,
       sort: { criterion, lastCriterion: SORT_OPTIONS.some(([key]) => key === raw.lastCriterion) ? raw.lastCriterion : previousCriterion, direction: raw.direction === 'asc' ? 'asc' : 'desc', automatic: criterion !== 'custom' && raw.automatic === true,
         manualOrder: Array.isArray(raw.manualOrder) ? raw.manualOrder.filter(id => typeof id === 'string') : [] } };
-  } catch { return { activeId: null, animations: true, notes: false, compactMoney: false, backgroundEffect: true, crtEffect: true, sort: defaultSort }; }
+  } catch { return { activeId: null, animations: true, compactMoney: false, backgroundEffect: true, crtEffect: true, sort: defaultSort }; }
 }
 function ProductCounter({ offer, left, right, title, leftLabel, rightLabel, leftUnit = '元', rightUnit = '×',
-  leftMax, rightMax, leftStep = 100, rightStep = .05, format = money, update, notes = false, explanation, tableMode = false, tax, compactMoney = false }) {
+  leftMax, rightMax, leftStep = 100, rightStep = .05, format = money, update, tableMode = false, tax, compactMoney = false }) {
   const a = offer.input[left], b = offer.input[right], result = productValue(a, b, leftMax, rightMax);
   const heat = productHeat(result, left === 'weekendHours' && !(productValue(offer.input.weekdayHours, offer.input.weekdayDays, 24, 5) > 0) ? 'invalid' : left);
   const operand = (field, value, label, unit, color, max, step) => <div className="operand-stack">
@@ -154,7 +135,6 @@ function ProductCounter({ offer, left, right, title, leftLabel, rightLabel, left
       <span className="equation-sign" aria-label="乘以">×</span>
       {operand(right, b, rightLabel || labels[right], rightUnit, 'mult-operand', rightMax, rightStep)}
     </div>
-    {notes && explanation && <p className="product-note">{explanation}</p>}
   </section>;
 }
 
@@ -177,12 +157,12 @@ function coefficientOptions(current, choices) {
   return options;
 }
 
-function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFocus, discard, compactMoney, reset }) {
+function OfferEditor({ offer, update, duplicate, canDuplicate, requestFocus, discard, compactMoney, reset }) {
   const r = offer.result, totals = incomeTotals(offer.input), amount = value => r ? scaledMoney(value, compactMoney) : '—';
   const [monthlyExpanded, setMonthlyExpanded] = useState(false), [annualExpanded, setAnnualExpanded] = useState(false);
   const number = (field, options = {}) => <NumberField key={field} offer={offer} field={field} update={update} {...options} />;
   const select = (field, choices, label, compact = false) => <PixelSelect key={field} offer={offer} field={field} update={update} options={choices} label={label || labels[field]} compact={compact} />;
-  const product = (left, right, title, options = {}) => <ProductCounter key={offer.id + '-' + left} offer={offer} left={left} right={right} title={title} update={update} notes={notes} compactMoney={compactMoney} format={value => scaledMoney(value, compactMoney)} {...options} />;
+  const product = (left, right, title, options = {}) => <ProductCounter key={offer.id + '-' + left} offer={offer} left={left} right={right} title={title} update={update} compactMoney={compactMoney} format={value => scaledMoney(value, compactMoney)} {...options} />;
   const annualIncomeRows = [
     ['signOn', 'signFactor', '签字费', 'signTax', taxOptions], ['stock', 'stockFactor', '股票', 'stockTax', equityOptions],
     ['option', 'optionFactor', '期权', 'optionTax', equityOptions], ['otherCash', 'otherFactor', '其他现金', 'otherTax', taxOptions],
@@ -221,7 +201,6 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
           </tbody>
           <tfoot><tr><td colSpan="4"><ActionButton className="income-expand" aria-expanded={annualExpanded} aria-controls={offer.id + '-annual-extra'} onClick={() => setAnnualExpanded(value => !value)}><span className="fold-sign">{annualExpanded ? '−' : '+'}</span>{' '}<span className="fold-label">签字费、股票、期权等</span></ActionButton></td></tr></tfoot>
         </table>
-        {notes && <p className="field-help">月收入按发放月数合计；年终奖只填未计入发薪月数的部分。一次性收入按本年金额与兑现系数折算，税费仍按名义金额估算。</p>}
       </section>
       <section className="editor-column time-column" aria-labelledby="time-heading"><h2 id="time-heading" className="column-heading">02 <span>工时</span></h2>
         {product('weekdayHours', 'weekdayDays', '工作日工时', { leftUnit: '小时 / 天', rightUnit: '天 / 周', leftMax: 24, rightMax: 5, leftStep: .5, rightStep: .5, format: value => scoreNumber(value) + ' h / 周' })}
@@ -244,25 +223,25 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, notes, requestFoc
         <div className="field-grid deduction-fields" aria-label="税前扣除">{number('specialDeduction', { step: 1000 })}{number('otherDeduction', { step: 1000 })}</div>
         <FoldSection className="advanced-settings" id={offer.id + '-fee-extra'} label="缴费上下限与固定医疗费"><div className="advanced-content">
           <div className="field-grid">{number('socialMin', { step: 100 })}{number('socialMax', { cap: true, step: 100 })}{number('fundMin', { step: 100 })}{number('fundMax', { cap: true, step: 100 })}{number('medicalFixed', { step: 1 })}</div>
-          <p className="field-help">缴费预设为历史示例，请按实际年度与公司口径调整；基数上限留空表示未设上限。</p>
         </div></FoldSection>
       </section>
     </div>
     </div>
     <FoldSection className="result-details" id={offer.id + '-result-extra'} label="完整结果与税费明细">
+      <div className="detail-groups"><section className="detail-group" aria-label="计算结果"><h3 className="detail-heading">计算结果</h3>
       <TextResults rows={[["价值折算税前总包", amount(r?.adjustedTC)], ['税前 855 等效年收入', amount(r?.eqPretax)], ['税后 855 等效年收入', amount(r?.eqAfter)],
         ['等效税前时薪', r ? money(r.eqPretax / 2080) + ' / h' : '—'], ['等效税后时薪', r ? money(r.eqAfterHourly) + ' / h' : '—'], ['税前名义总包', amount(r?.nominalTC)],
         ['平均月税后价值', r ? scaledMoney(r.afterTaxValue / 12, compactMoney, 'monthly') : '—'], ['预计个人所得税', amount(r?.taxTotal)], ['个人五险一金', amount(r?.socialTotal)], ['税后现金 / 权益价值', amount(r?.afterTaxValue)],
         ['实际 / 加权周工时', r ? r.wh.actual.toFixed(1) + ' / ' + r.wh.weighted.toFixed(1) + ' h' : '—']]} />
-      <h3 className="detail-heading">工时与假期明细</h3>
+      </section><section className="detail-group" aria-label="工时与假期"><h3 className="detail-heading">工时与假期</h3>
         <TextResults rows={[["实际周工时", r ? r.wh.actual.toFixed(1) + ' h' : '—'], ['加权周工时', r ? r.wh.weighted.toFixed(1) + ' h' : '—'], ['假期折算', r ? scoreNumber(r.wh.leaveDays) + ' 天' : '—'], ['全年工作日', r ? scoreNumber(r.wh.workingDays) + ' 天' : '—'], ['实际全年工时', r ? scoreNumber(r.wh.annualActual) + ' h' : '—'], ['加权全年工时', r ? scoreNumber(r.wh.annualWeighted) + ' h' : '—']]} />
-      <h3 className="detail-heading">收入拆分（名义金额）</h3>
+      </section><section className="detail-group" aria-label="收入拆分"><h3 className="detail-heading">收入拆分（名义金额）</h3>
       <TextResults rows={[["固定工资", 'salary'], ['固定补贴', 'allowance'], ['年终奖', 'bonus'], ['签字费', 'sign'], ['股票 / RSU', 'stock'], ['期权', 'option'], ['其他现金', 'other'], ['非现金福利', 'benefits']].map(([label, key]) => [label, amount(r?.[key])])} />
-      <h3 className="detail-heading">个税明细</h3>
+      </section><section className="detail-group" aria-label="个人所得税"><h3 className="detail-heading">个人所得税</h3>
       <TextResults className="tax-breakdown" rows={[["综合所得应纳税所得额", amount(r?.taxableComp)], ['综合所得个税', amount(r?.taxComp)], ['奖金个税', amount(r?.taxBonus)], ['股权个税', amount(r?.taxEquity)], ['个人所得税合计', amount(r?.taxTotal)]]} />
-      <h3 className="detail-heading">个人五险一金明细</h3>
+      </section><section className="detail-group" aria-label="五险一金"><h3 className="detail-heading">个人五险一金</h3>
       <TextResults className="contribution-breakdown" rows={[["社保月基数", amount(r?.appliedSocialBase)], ['公积金月基数', amount(r?.appliedFundBase)], ...[['养老 / 年', 'pension'], ['医疗 / 年（含固定费）', 'medical'], ['失业 / 年', 'unemployment'], ['其他社保 / 年', 'otherSocial'], ['公积金 / 年', 'fund'], ['个人全年缴费', 'socialTotal']].map(([label, key]) => [label, amount(r?.[key])])]} />
-      <p className="field-help">{r?.rating.comment} 税后总包包含折算后的权益与福利，不等同于现金到账。855 为每天 8 小时、每周 5 天；全年比较按 2080 小时。</p>
+      </section></div>
     </FoldSection>
   </section>;
 }
@@ -488,18 +467,18 @@ export default function App() {
           </div>
         </aside></div>
       <div className={'editor-drop-zone ' + (drag?.target === 'editor' ? 'drop-ready' : '')} data-drop-zone="editor">
-        {active ? <OfferEditor key={active.id} offer={active} update={update} duplicate={duplicate} canDuplicate={offers.length < MAX_OFFERS} reset={resetCurrent} notes={ui.notes} compactMoney={ui.compactMoney} requestFocus={requestFocus} discard={() => discard()} /> :
+        {active ? <OfferEditor key={active.id} offer={active} update={update} duplicate={duplicate} canDuplicate={offers.length < MAX_OFFERS} reset={resetCurrent} compactMoney={ui.compactMoney} requestFocus={requestFocus} discard={() => discard()} /> :
           <div className="empty-editor"><span aria-hidden="true">♠</span><h2>下一份 Offer，从抽牌开始。</h2><p>抽一张手牌，填入薪资与工时，即可比较。</p><button className="primary-button" onClick={add}>抽一张 Offer</button></div>}
       </div>
     </main>
-    <MethodDialog dialogRef={dialogRef} />
+    <HelpDialog dialogRef={dialogRef} />
     <dialog className="method-dialog options-dialog" aria-labelledby="options-title" ref={optionsRef} onPointerDown={e => { optionsBackdrop.current = e.target === e.currentTarget; }} onClick={e => { if (e.target === e.currentTarget && optionsBackdrop.current) optionsRef.current.close(); optionsBackdrop.current = false; }}>
       <div className="dialog-header"><h2 id="options-title">选项</h2><ActionButton className="dialog-close" aria-label="关闭选项" onClick={() => optionsRef.current.close()}>×</ActionButton></div>
       <div className="options-content">
         <label><input type="checkbox" checked={ui.animations} onChange={e => setUi(current => ({ ...current, animations: e.target.checked }))} />计分与火焰动效</label>
         <label><input type="checkbox" checked={ui.backgroundEffect} onChange={e => setUi(current => ({ ...current, backgroundEffect: e.target.checked }))} />流动背景效果</label>
         <label><input type="checkbox" checked={ui.crtEffect} onChange={e => setUi(current => ({ ...current, crtEffect: e.target.checked }))} />CRT 屏幕效果</label>
-        <label><input type="checkbox" checked={ui.notes} onChange={e => setUi(current => ({ ...current, notes: e.target.checked }))} />显示公式说明</label>
+
         <label><input type="checkbox" checked={ui.compactMoney} onChange={e => setUi(current => ({ ...current, compactMoney: e.target.checked }))} />紧凑金额单位（年度万元／月收入千元）</label>
         <ActionButton onClick={exportResults} disabled={offers.length === 0}>↓ 导出比较结果</ActionButton>
         <ActionButton onClick={() => { setOffers(exampleOffers()); setDiscarded([]); setUi(current => ({ ...current, activeId: null, sort: defaultSort })); optionsRef.current.close(); notify('已恢复参考示例。'); }}>↻ 恢复示例</ActionButton>
