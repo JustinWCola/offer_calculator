@@ -226,7 +226,7 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, requestFocus, dis
         </div></FoldSection>
       </section>
     </div>
-    <FoldSection className="result-details" id={offer.id + '-result-extra'} label="完整结果与税费明细">
+    <FoldSection className="result-details" id={offer.id + '-result-extra'} label="完整结果明细">
       <div className="detail-groups"><section className="detail-group" aria-label="计算结果"><h3 className="detail-heading">计算结果</h3>
       <TextResults rows={[["价值折算税前总包", amount(r?.adjustedTC)], ['税前 855 等效年收入', amount(r?.eqPretax)], ['税后 855 等效年收入', amount(r?.eqAfter)],
         ['等效税前时薪', r ? money(r.eqPretax / 2080) + ' / h' : '—'], ['等效税后时薪', r ? money(r.eqAfterHourly) + ' / h' : '—'], ['税前名义总包', amount(r?.nominalTC)],

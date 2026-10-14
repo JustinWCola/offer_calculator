@@ -230,7 +230,7 @@ body{padding-bottom:0}
 .editor-name span{display:inline;margin-left:12px;font-size:10px}
 .input-error{flex:none}
 .editor-scroll{overflow:auto;overscroll-behavior:contain;min-height:0;flex:1;scrollbar-width:thin;scrollbar-color:#95a99b #e0e5d2}
-.editor-columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;padding:15px 16px 19px;gap:18px}
+.editor-columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;padding:15px 16px 19px;gap:18px}
 .editor-column{min-width:0}
 .editor-column+.editor-column{border-left:2px solid #d4dccb;padding-left:18px}
 .column-heading{margin:0 0 13px;font-size:13px;font-weight:normal;color:#9aa790;display:flex;gap:10px;align-items:center}
@@ -703,6 +703,13 @@ body::before{animation:none}
 .help-sources{border-top:1px solid #405858}.help-sources p{font-size:10px}
 @media(max-width:800px){.detail-groups{gap:16px}.method-content{padding:12px 14px;font-size:11px}.help-table{font-size:10px}.help-table th,.help-table td{padding:6px}.help-nav a{font-size:10px;padding:3px 6px}}
 /* Input fields and full-width details share the editor's sole scrollbar. */
+.offer-editor{box-shadow:0 5px #152d26}
+.editor-scroll{display:flex;flex-direction:column}
+.editor-scroll>.editor-columns{flex:1 0 auto}
+.editor-scroll>.result-details{flex:none}
+/* Keep native scrolling without visible tracks or thumbs in every panel. */
+:root,:root *{scrollbar-width:none}
+*::-webkit-scrollbar{display:none;width:0;height:0}
 .editor-scroll>.result-details{width:100%;margin:0;padding:12px 14px;background:#1b292c;border:0;border-top:2px solid #526462;border-radius:0;box-shadow:none;color:#d3e1dc;max-height:none;overflow:visible}
 .preference-settings{margin:14px 0 0}.preference-settings .preference-fields{margin:0}.preference-settings .fold-toggle{margin-top:10px}
 @media(max-width:800px){.editor-scroll>.result-details{padding:10px}}
