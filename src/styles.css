@@ -669,7 +669,7 @@ body::before{animation:none}
 @media(max-width:800px){}
 .income-item-name{display:block}.income-item-title{display:block;font-size:10px;line-height:14px}
 .income-item-total{display:flex;align-items:flex-end;gap:5px;margin-top:3px;min-width:0}
-.income-item-total output{margin:0;min-width:0;line-height:18px}.income-item-total .tax-symbol{width:18px;height:18px;min-width:18px;font-size:9px;flex:none;box-shadow:none}
+.income-item-total output{margin:0;min-width:0;line-height:18px}.income-item-total .tax-symbol{width:18px;height:18px;min-width:18px;font-size:9px;flex:none;box-shadow:none;transform:translateY(-4px)}
 /* Shared action palettes; score colors and rating tiers remain separate. */
 :root{--action-yellow:#f6a000;--action-yellow-border:#ffbe39;--action-yellow-shadow:#a66a00;--action-yellow-hover:#ffb21e;--action-red:#fe5f55;--action-red-border:#ff8f80;--action-red-shadow:#b43d35;--action-red-hover:#ff796c;--action-green:#318b73;--action-green-border:#75bea0;--action-green-shadow:#245448}
 .primary-button,.options-button,.summary-actions .reset-offer,.sort-modes button[aria-pressed=true],.sort-rule-list button[aria-pressed=true],.sort-direction button[aria-pressed=true]{background:var(--action-yellow);border-color:var(--action-yellow-border);color:#fff4dc;box-shadow:0 3px var(--action-yellow-shadow);text-shadow:1px 1px #925c00}
@@ -681,7 +681,7 @@ body::before{animation:none}
 .brand-mark img{width:40px;height:40px;image-rendering:pixelated}.slot-art img{width:38px;height:38px;image-rendering:pixelated}
 @media(max-width:800px){.sidebar .brand-mark{width:28px;height:28px}.brand-mark img{width:28px;height:28px}.slot-art img{width:30px;height:30px}}
 /* Full-width result band, sibling to the input scroller and matching the summary. */
-.result-details .fold-content{padding:0}.result-details .fold-toggle{width:100%;background:transparent;border:0;border-radius:0;box-shadow:none;margin:0;padding:4px 0}
+.result-details .fold-content{padding:0}.result-details .fold-toggle{width:100%;background:transparent;border:0;border-radius:0;box-shadow:none;margin:0;padding:4px 0;font-size:13px;line-height:20px}
 .result-details .fold-content:not([hidden])+.fold-toggle{margin-top:14px;padding-top:10px;border-top:1px solid #365057}
 .result-details .text-results{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 25px}
 @media(max-width:800px){.result-details .text-results{grid-template-columns:1fr}}
