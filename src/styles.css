@@ -703,8 +703,8 @@ body::before{animation:none}
 .help-sources{border-top:1px solid #405858}.help-sources p{font-size:10px}
 @media(max-width:800px){.detail-groups{gap:16px}.method-content{padding:12px 14px;font-size:11px}.help-table{font-size:10px}.help-table th,.help-table td{padding:6px}.help-nav a{font-size:10px;padding:3px 6px}}
 /* Input fields and full-width details share the editor's sole scrollbar. */
-.offer-editor{box-shadow:0 5px #152d26}
-.editor-scroll{display:flex;flex-direction:column}
+.offer-editor{box-shadow:inset 2px 0 #506061,inset -2px 0 #506061,0 5px #152d26}
+.editor-scroll{display:flex;flex-direction:column;margin-inline:2px}
 .editor-scroll>.editor-columns{flex:1 0 auto}
 .editor-scroll>.result-details{flex:none}
 /* Keep native scrolling without visible tracks or thumbs in every panel. */
