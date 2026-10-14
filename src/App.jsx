@@ -222,7 +222,6 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, requestFocus, dis
         <div className="field-grid deduction-fields" aria-label="税前扣除">{number('specialDeduction', { step: 1000 })}{number('otherDeduction', { step: 1000 })}</div>
         <FoldSection className="advanced-settings" id={offer.id + '-fee-extra'} label="缴费上下限与固定医疗费"><div className="advanced-content">
           <div className="field-grid">{number('socialMin', { step: 100 })}{number('socialMax', { cap: true, step: 100 })}{number('fundMin', { step: 100 })}{number('fundMax', { cap: true, step: 100 })}{number('medicalFixed', { step: 1 })}</div>
-          {offer.input.city !== 'custom' && <ActionButton className="income-expand apply-city-preset" onClick={() => update('city', offer.input.city)}>应用当前城市预设</ActionButton>}
         </div></FoldSection>
       </section>
     </div>

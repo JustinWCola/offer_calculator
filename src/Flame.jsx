@@ -50,7 +50,8 @@ export default function Flame({ level, color = 'red' }) {
     return () => {
       cancelAnimationFrame(frame); observer.disconnect(); document.removeEventListener('visibilitychange', resume); reduced.removeEventListener('change', resume);
       delete node.dataset.rendered; gl.deleteBuffer(buffer); shaders.forEach(s => gl.deleteShader(s)); gl.deleteProgram(program);
-      queueMicrotask(() => { if (!node.isConnected) gl.getExtension('WEBGL_lose_context')?.loseContext(); });
+      // Release detached canvases before replacement flames allocate contexts.
+      if (!node.isConnected) gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
   }, [level, enabled, color]);
   return <span className={'shader-fire fire-' + level + ' fire-' + color} aria-hidden="true"><span className="static-fire" /><canvas ref={canvas} hidden={!enabled} /></span>;
