@@ -117,17 +117,17 @@ test('growth and location preferences affect equivalence without changing tax', 
   closeTo(result.eqAfter, 107198.4);
 });
 
-test('Beijing historical bases clamp salaries to both upper and lower limits', () => {
+test('Beijing 2026 bases clamp salaries to both upper and lower limits', () => {
   const capped = calculate({ ...standardOffer, city: 'beijing', monthlyBase: 95000 });
-  assert.equal(capped.appliedSocialBase, 35811);
-  assert.equal(capped.appliedFundBase, 35811);
-  closeTo(capped.socialTotal, 96725.70);
+  assert.equal(capped.appliedSocialBase, 36348);
+  assert.equal(capped.appliedFundBase, 36348);
+  closeTo(capped.socialTotal, 98175.60);
   const floor = calculate({ ...standardOffer, city: 'beijing', monthlyBase: 1000 });
-  assert.equal(floor.appliedSocialBase, 7162);
+  assert.equal(floor.appliedSocialBase, 7270);
   assert.equal(floor.appliedFundBase, 2540);
-  closeTo(floor.pension, 6875.52);
-  closeTo(floor.medical, 1754.88);
-  closeTo(floor.unemployment, 429.72);
+  closeTo(floor.pension, 6979.20);
+  closeTo(floor.medical, 1780.80);
+  closeTo(floor.unemployment, 436.20);
   closeTo(floor.fund, 3657.60);
   assert.equal(cityPresets.beijing.medicalFixed, 3);
 });

@@ -1,3 +1,4 @@
+import { BEIJING_POLICY } from './policy-presets.js';
 import React, { useRef } from 'react';
 import { INCOME_HEAT_THRESHOLDS } from './table-utils.js';
 
@@ -14,7 +15,7 @@ export default function HelpDialog({ dialogRef }) {
         <li>点击 Offer 牌选择报价，编辑区只修改当前选中的 Offer。</li>
         <li>点击牌堆或将其拖入牌槽新增；将 Offer 拖回牌堆删除。删除可撤销，编辑区也有删除、复制和重置按钮。</li>
         <li>选择排序依据会开启自动排序。拖动牌或按 Alt + ← / → 进入自定义排序，并保留当前排列。</li>
-        <li>蓝框与红框相乘得到该项结果；上下箭头可调整数值。完整结果与分类明细在编辑区底部展开。</li>
+        <li>蓝框与红框相乘得到该项结果；上下箭头可调整数值。完整结果与分类明细在编辑区底部展开，与输入字段共用滚动条。</li>
       </ul></section>
       <section id="help-income"><h3>收入</h3>
         <table className="help-table"><thead><tr><th>填写项</th><th>填写口径</th></tr></thead><tbody>
@@ -34,7 +35,8 @@ export default function HelpDialog({ dialogRef }) {
           <tr><td>免</td><td>本年不计现金个税。非现金福利也按此方式展示。</td></tr>
         </tbody></table>
         <dl className="help-formulas"><dt>综合所得应纳税所得额</dt><dd>并入综合所得的名义收入 − 60,000 元 − 个人五险一金 − 全年税前扣除；最低为 0。</dd></dl>
-        <ul><li>个人缴费按缴费基数、各项比例和缴纳月数计算；固定医疗费另按月计入。</li><li>自动基数按月基本工资估算并应用上下限，也可手动填写。上限留空表示未设上限。</li><li>城市参数为历史示例。北京采用 2025 年社保及 2025–2026 年度公积金参数；请按实际年度和公司口径调整。</li></ul>
+        <ul><li>个人缴费按缴费基数、各项比例和缴纳月数计算；固定医疗费另按月计入。</li><li>自动基数按月基本工资估算并应用上下限，也可手动填写。上限留空表示未设上限。</li><li>北京预设采用下表公告。全年比较按同一月基数估算，跨期报价可手动调整；其他城市仍为比例示例。修改过的上下限会保留，可在折叠区点击“应用当前城市预设”重新载入。</li></ul>
+        <table className="help-table"><thead><tr><th>北京基数</th><th>下限／上限（元/月）及适用期间</th></tr></thead><tbody>{[['social', '社保'], ['fund', '公积金']].map(([key, name]) => <tr key={key}><td><a href={BEIJING_POLICY[key].source} target="_blank" rel="noreferrer">{name}公告 ↗</a></td><td>{BEIJING_POLICY[key].min.toLocaleString('zh-CN')}／{BEIJING_POLICY[key].max.toLocaleString('zh-CN')}<br />{BEIJING_POLICY[key].period}</td></tr>)}</tbody></table>
       </section>
       <section id="help-time"><h3>工时与假期</h3>
         <table className="help-table"><thead><tr><th>工时部分</th><th>权重</th></tr></thead><tbody><tr><td>工作日每天不超过 8 小时的部分</td><td>1 倍</td></tr><tr><td>工作日每天超过 8 小时的部分</td><td>1.5 倍</td></tr><tr><td>周末工时</td><td>2 倍</td></tr></tbody></table>
@@ -42,7 +44,7 @@ export default function HelpDialog({ dialogRef }) {
         <p>假期按占用原计划工作日的天数填写，避免重复扣除；调休应计入实际工作安排。病假 0.6 系数沿用参考项目的实际代码。工时权重用于比较，不是加班工资核算；不计通勤。</p>
       </section>
       <section id="help-compare"><h3>等效结果</h3>
-        <p>855 指每天 8 小时、每周 5 天，全年按 52 周共 2,080 小时比较。发展前景与个人偏好系数以 1 为中性值；其他系数由你选择。</p>
+        <p>855 指每天 8 小时、每周 5 天，全年按 52 周共 2,080 小时比较。发展前景与个人偏好在工时栏中折叠，展开后可修改；系数以 1 为中性值。</p>
         <dl className="help-formulas"><dt>等效税后时薪</dt><dd>税后价值 × 发展前景系数 × 个人偏好系数 ÷ 加权全年工时</dd><dt>等效税后年收入</dt><dd>等效税后时薪 × 2,080</dd><dt>等效税前年收入／时薪</dt><dd>使用价值折算税前总包代替税后价值，按相同方式计算。</dd></dl>
         <p>结果按未取整值计算，显示时才取整或换算单位。</p>
       </section>

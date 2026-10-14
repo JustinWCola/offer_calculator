@@ -1,3 +1,4 @@
+import { migrateBeijingLimits } from './policy-presets.js';
 import HelpDialog from './HelpDialog.jsx';
 import React, { useEffect, useRef, useState } from 'react';
 import { NEW_OFFER_INPUT, REFERENCE_INPUT } from './offer-defaults.js';
@@ -61,7 +62,7 @@ function loadOffers() {
           (Object.hasOwn(defaults, key) || Object.hasOwn(labels, key)) && ['number', 'string'].includes(typeof value))) } }));
       let previousSort;
       try { previousSort = JSON.parse(localStorage.getItem(UI_KEY))?.sort; } catch { /* Preserve valid offers if UI storage is damaged. */ }
-      return migrateManualOrder(restored, previousSort);
+      return migrateManualOrder(restored.map(o => ({ ...o, input: migrateBeijingLimits(o.input) })), previousSort);
     }
   } catch { /* A blocked or damaged local store falls back to editable examples. */ }
   return exampleOffers();
@@ -206,12 +207,10 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, requestFocus, dis
         {product('weekdayHours', 'weekdayDays', '工作日工时', { leftUnit: '小时 / 天', rightUnit: '天 / 周', leftMax: 24, rightMax: 5, leftStep: .5, rightStep: .5, format: value => scoreNumber(value) + ' h / 周' })}
         {product('weekendHours', 'weekendDays', '周末工时', { leftUnit: '小时 / 天', rightUnit: '天 / 周', leftMax: 24, rightMax: 2, leftStep: .5, rightStep: .5, format: value => scoreNumber(value) + ' h / 周' })}
         <section className="work-group" aria-label="年度假期"><div className="field-grid holiday-fields" aria-label="年度假期">{['annualLeave', 'publicHolidays', 'paidSickLeave'].map(field => number(field, { unit: '天 / 年', max: 366, step: 1 }))}</div></section>
-        <section className="work-group" aria-label="发展与偏好"><div className="field-grid preference-fields">
+        <FoldSection className="preference-settings" id={offer.id + '-preference-extra'} label="发展前景与个人偏好"><div className="field-grid preference-fields">
           {select('growth', coefficientOptions(offer.input.growth, [[1.3, '1.30 顶级成长'], [1.15, '1.15 良好成长'], [1, '1.00 普通'], [.9, '0.90 较弱'], [.8, '0.80 消耗型']]), '发展前景')}
           {select('locationFactor', coefficientOptions(offer.input.locationFactor, [[1.3, '1.30 非常喜欢'], [1.15, '1.15 比较喜欢'], [1, '1.00 中性'], [.9, '0.90 不太喜欢'], [.8, '0.80 较不适应']]), '个人偏好')}
-        </div></section>
-
-
+        </div></FoldSection>
       </section>
       <section className="editor-column fees-column" aria-labelledby="fees-heading"><h2 id="fees-heading" className="column-heading">03 <span>税费</span></h2>
         <div className="field-grid fees-base-fields">{select('city', Object.entries(cities), '工作城市')}{select('baseMode', [['salary', '按月薪估算并限额'], ['custom', '手动输入基数']], '缴费基数')}
@@ -223,9 +222,9 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, requestFocus, dis
         <div className="field-grid deduction-fields" aria-label="税前扣除">{number('specialDeduction', { step: 1000 })}{number('otherDeduction', { step: 1000 })}</div>
         <FoldSection className="advanced-settings" id={offer.id + '-fee-extra'} label="缴费上下限与固定医疗费"><div className="advanced-content">
           <div className="field-grid">{number('socialMin', { step: 100 })}{number('socialMax', { cap: true, step: 100 })}{number('fundMin', { step: 100 })}{number('fundMax', { cap: true, step: 100 })}{number('medicalFixed', { step: 1 })}</div>
+          {offer.input.city !== 'custom' && <ActionButton className="income-expand apply-city-preset" onClick={() => update('city', offer.input.city)}>应用当前城市预设</ActionButton>}
         </div></FoldSection>
       </section>
-    </div>
     </div>
     <FoldSection className="result-details" id={offer.id + '-result-extra'} label="完整结果与税费明细">
       <div className="detail-groups"><section className="detail-group" aria-label="计算结果"><h3 className="detail-heading">计算结果</h3>
@@ -243,6 +242,7 @@ function OfferEditor({ offer, update, duplicate, canDuplicate, requestFocus, dis
       <TextResults className="contribution-breakdown" rows={[["社保月基数", amount(r?.appliedSocialBase)], ['公积金月基数', amount(r?.appliedFundBase)], ...[['养老 / 年', 'pension'], ['医疗 / 年（含固定费）', 'medical'], ['失业 / 年', 'unemployment'], ['其他社保 / 年', 'otherSocial'], ['公积金 / 年', 'fund'], ['个人全年缴费', 'socialTotal']].map(([label, key]) => [label, amount(r?.[key])])]} />
       </section></div>
     </FoldSection>
+    </div>
   </section>;
 }
 
@@ -315,7 +315,6 @@ export default function App() {
   const update = (field, value) => setOffers(current => current.map(o => o.id !== active.id ? o : field === 'name' ? { ...o, name: value } :
     { ...o, input: { ...o.input, [field]: value, ...(field === 'city' && value !== 'custom' ? presetFields(value) : {}) } }));
   function requestFocus(field) {
-    if (matchMedia('(max-width:800px)').matches) document.querySelector('.result-details .fold-toggle[aria-expanded=true]')?.click();
     setPendingFocus(field);
   }
   function add() {

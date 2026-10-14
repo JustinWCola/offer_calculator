@@ -1,4 +1,6 @@
-/** Historical quick presets, not a live policy feed. All bases and rates are editable. */
+import { BEIJING_POLICY } from './policy-presets.js';
+
+/** Editable quick presets, not a live policy feed. All bases and rates are editable. */
 const preset = (u, f, extra = {}) => ({
   p: 8, m: 2, u, o: 0, f, medicalFixed: 0,
   socialMin: 0, socialMax: Number.MAX_SAFE_INTEGER,
@@ -6,7 +8,7 @@ const preset = (u, f, extra = {}) => ({
 });
 
 export const cityPresets = {
-  beijing: preset(0.5, 12, { socialMin: 7162, socialMax: 35811, fundMin: 2540, fundMax: 35811, medicalFixed: 3 }),
+  beijing: preset(0.5, 12, { socialMin: BEIJING_POLICY.social.min, socialMax: BEIJING_POLICY.social.max, fundMin: BEIJING_POLICY.fund.min, fundMax: BEIJING_POLICY.fund.max, medicalFixed: 3 }),
   shanghai: preset(0.5, 7), shenzhen: preset(0.2, 5), guangzhou: preset(0.2, 5),
   hangzhou: preset(0.5, 12), chengdu: preset(0.4, 6), nanjing: preset(0.5, 8), wuhan: preset(0.3, 8),
   custom: preset(0, 0, { p: 0, m: 0 }),

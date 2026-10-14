@@ -681,14 +681,11 @@ body::before{animation:none}
 .brand-mark img{width:40px;height:40px;image-rendering:pixelated}.slot-art img{width:38px;height:38px;image-rendering:pixelated}
 @media(max-width:800px){.sidebar .brand-mark{width:28px;height:28px}.brand-mark img{width:28px;height:28px}.slot-art img{width:30px;height:30px}}
 /* Full-width result band, sibling to the input scroller and matching the summary. */
-.offer-editor>.result-details{flex:0 1 auto;width:100%;min-height:0;max-height:40%;overflow-y:auto;margin:0;padding:12px 14px;background:#1b292c;border:0;border-top:2px solid #526462;border-radius:0;box-shadow:none;color:#d3e1dc;scrollbar-width:thin;scrollbar-color:#617578 #1b292c}
 .result-details .fold-content{padding:0}.result-details .fold-toggle{width:100%;background:transparent;border:0;border-radius:0;box-shadow:none;margin:0;padding:4px 0}
 .result-details .fold-content:not([hidden])+.fold-toggle{margin-top:14px;padding-top:10px;border-top:1px solid #365057}
 .result-details .text-results{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 25px}
-@media(max-width:800px){.offer-editor>.result-details{padding:10px}.result-details .text-results{grid-template-columns:1fr}}
+@media(max-width:800px){.result-details .text-results{grid-template-columns:1fr}}
 @media(max-width:800px){
- .offer-editor:has(>.result-details .fold-toggle[aria-expanded=true])>.editor-scroll{display:none}
- .offer-editor:has(>.result-details .fold-toggle[aria-expanded=true])>.result-details{flex:1;max-height:none}
 }
 .detail-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:18px 20px}
 .detail-group{min-width:0}.detail-group .detail-heading{margin:0 0 10px;padding-bottom:7px;border-bottom:1px solid #365057;font-size:12px}
@@ -705,3 +702,7 @@ body::before{animation:none}
 .help-formulas{padding:10px 12px;background:#1c3032;border-left:3px solid #e8aa42;margin:12px 0}.help-formulas dt{color:#ffca62;margin:7px 0 3px}.help-formulas dt:first-child{margin-top:0}.help-formulas dd{margin:0 0 7px;color:#e1e9d9;overflow-wrap:anywhere}.help-formulas dd:last-child{margin-bottom:0}
 .help-sources{border-top:1px solid #405858}.help-sources p{font-size:10px}
 @media(max-width:800px){.detail-groups{gap:16px}.method-content{padding:12px 14px;font-size:11px}.help-table{font-size:10px}.help-table th,.help-table td{padding:6px}.help-nav a{font-size:10px;padding:3px 6px}}
+/* Input fields and full-width details share the editor's sole scrollbar. */
+.editor-scroll>.result-details{width:100%;margin:0;padding:12px 14px;background:#1b292c;border:0;border-top:2px solid #526462;border-radius:0;box-shadow:none;color:#d3e1dc;max-height:none;overflow:visible}
+.preference-settings{margin:14px 0 0}.preference-settings .preference-fields{margin:0}.preference-settings .fold-toggle{margin-top:10px}
+@media(max-width:800px){.editor-scroll>.result-details{padding:10px}}
