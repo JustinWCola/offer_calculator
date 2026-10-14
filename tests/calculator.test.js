@@ -117,19 +117,18 @@ test('growth and location preferences affect equivalence without changing tax', 
   closeTo(result.eqAfter, 107198.4);
 });
 
-test('Beijing 2026 bases clamp salaries to both upper and lower limits', () => {
-  const capped = calculate({ ...standardOffer, city: 'beijing', monthlyBase: 95000 });
-  assert.equal(capped.appliedSocialBase, 36348);
-  assert.equal(capped.appliedFundBase, 36348);
-  closeTo(capped.socialTotal, 98175.60);
-  const floor = calculate({ ...standardOffer, city: 'beijing', monthlyBase: 1000 });
-  assert.equal(floor.appliedSocialBase, 7270);
-  assert.equal(floor.appliedFundBase, 2540);
-  closeTo(floor.pension, 6979.20);
-  closeTo(floor.medical, 1780.80);
-  closeTo(floor.unemployment, 436.20);
-  closeTo(floor.fund, 3657.60);
-  assert.equal(cityPresets.beijing.medicalFixed, 3);
+test('all cities default to zero floors and no caps; explicit Beijing limits still apply', () => {
+  for (const preset of Object.values(cityPresets)) {
+    assert.equal(preset.socialMin,0);assert.equal(preset.fundMin,0);
+    assert.equal(preset.socialMax,Number.MAX_SAFE_INTEGER);assert.equal(preset.fundMax,Number.MAX_SAFE_INTEGER);
+  }
+  const high = calculate({ ...standardOffer, city:'beijing', monthlyBase:95000 });
+  assert.equal(high.appliedSocialBase,95000);assert.equal(high.appliedFundBase,95000);
+  const low = calculate({ ...standardOffer, city:'beijing', monthlyBase:1000 });
+  assert.equal(low.appliedSocialBase,1000);assert.equal(low.appliedFundBase,1000);
+  const capped = calculate({ ...standardOffer, city:'beijing', monthlyBase:95000, socialMin:7270,socialMax:36348,fundMin:2540,fundMax:36348 });
+  assert.equal(capped.appliedSocialBase,36348);assert.equal(capped.appliedFundBase,36348);
+  assert.equal(cityPresets.beijing.medicalFixed,3);
 });
 
 test('custom bases, rates, fixed medical fee and part-year contributions are independent', () => {

@@ -35,8 +35,8 @@ export default function HelpDialog({ dialogRef }) {
           <tr><td>免</td><td>本年不计现金个税。非现金福利也按此方式展示。</td></tr>
         </tbody></table>
         <dl className="help-formulas"><dt>综合所得应纳税所得额</dt><dd>并入综合所得的名义收入 − 60,000 元 − 个人五险一金 − 全年税前扣除；最低为 0。</dd></dl>
-        <ul><li>个人缴费按缴费基数、各项比例和缴纳月数计算；固定医疗费另按月计入。</li><li>自动基数按月基本工资估算并应用上下限，也可手动填写。上限留空表示未设上限。</li><li>北京预设采用下表公告。全年比较按同一月基数估算，跨期报价可手动调整；其他城市仍为比例示例。修改过的上下限会保留，可在折叠区点击“应用当前城市预设”重新载入。</li></ul>
-        <table className="help-table"><thead><tr><th>北京基数</th><th>下限／上限（元/月）及适用期间</th></tr></thead><tbody>{[['social', '社保'], ['fund', '公积金']].map(([key, name]) => <tr key={key}><td><a href={BEIJING_POLICY[key].source} target="_blank" rel="noreferrer">{name}公告 ↗</a></td><td>{BEIJING_POLICY[key].min.toLocaleString('zh-CN')}／{BEIJING_POLICY[key].max.toLocaleString('zh-CN')}<br />{BEIJING_POLICY[key].period}</td></tr>)}</tbody></table>
+        <ul><li>个人缴费按缴费基数、各项比例和缴纳月数计算；固定医疗费另按月计入。</li><li>自动基数按月基本工资估算并应用上下限，也可手动填写。上限留空表示未设上限。</li><li>所有城市默认下限为 0、未设上限，按月薪或手动基数估算。下表为北京官方限额参考，不自动套用；如需按实际政策估算，请自行填写。修改过的上下限会保留，点击“应用当前城市预设”会恢复默认范围与缴费比例。</li></ul>
+        <table className="help-table"><thead><tr><th>北京官方参考</th><th>下限／上限（元/月）及适用期间</th></tr></thead><tbody>{[['social', '社保'], ['fund', '公积金']].map(([key, name]) => <tr key={key}><td><a href={BEIJING_POLICY[key].source} target="_blank" rel="noreferrer">{name}公告 ↗</a></td><td>{BEIJING_POLICY[key].min.toLocaleString('zh-CN')}／{BEIJING_POLICY[key].max.toLocaleString('zh-CN')}<br />{BEIJING_POLICY[key].period}</td></tr>)}</tbody></table>
       </section>
       <section id="help-time"><h3>工时与假期</h3>
         <table className="help-table"><thead><tr><th>工时部分</th><th>权重</th></tr></thead><tbody><tr><td>工作日每天不超过 8 小时的部分</td><td>1 倍</td></tr><tr><td>工作日每天超过 8 小时的部分</td><td>1.5 倍</td></tr><tr><td>周末工时</td><td>2 倍</td></tr></tbody></table>
