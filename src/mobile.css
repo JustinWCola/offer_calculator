@@ -1,0 +1,114 @@
+/* Keep the desktop cascade intact. Phones use one document scroll surface. */
+.mobile-sidebar-toggle, .mobile-sidebar-backdrop { display: none; }
+@media (max-width: 800px) {
+  html, body, #root { height: auto; overflow: visible; }
+  body { min-height: 100dvh; }
+  .table-layout {
+    height: auto;
+    min-height: 100dvh;
+    grid-template-rows: auto auto;
+    padding: 10px 0 calc(24px + env(safe-area-inset-bottom));
+    gap: 14px;
+  }
+  .sidebar {
+    position: fixed; inset: 0 auto 0 0; z-index: 81;
+    width: 190px; height: 100dvh;
+    display: flex; flex-direction: column; align-items: stretch;
+    padding: max(21px, env(safe-area-inset-top)) 14px max(15px, env(safe-area-inset-bottom));
+    gap: 0; overflow-y: auto; overscroll-behavior: contain;
+    border-radius: 0 8px 8px 0; background: #2d383b;
+    visibility: hidden; transform: translateX(-100%);
+  }
+  .sidebar.is-open { visibility: visible; transform: translateX(0); }
+  .sidebar-brand { justify-content: flex-start; flex-shrink: 0; }
+  .mobile-sidebar-toggle {
+    display: grid; place-items: center; position: absolute; left: -10px; top: env(safe-area-inset-top); z-index: 82;
+    width: 44px; height: 52px; padding: 0; border: 1px solid #718783;
+    border-left: 0; border-radius: 0 8px 8px 0; background: #374244; color: #ffcf72; font-size: 28px;
+  }
+  .mobile-sidebar-toggle.is-open { position: fixed; left: 190px; }
+  .mobile-sidebar-toggle img { width: 32px; height: 32px; image-rendering: pixelated; }
+  .mobile-sidebar-backdrop { display: block; position: fixed; inset: 0; z-index: 80; border: 0; padding: 0; background: #0006; }
+  /* Mirror the desktop sidebar hierarchy instead of the compact mobile grid. */
+  .sidebar > * { flex-shrink: 0; }
+  .sidebar-brand { justify-content: center; padding: 12px 0 4px; }
+  .sidebar .brand-mark { width: 40px; height: 44px; }
+  .sidebar .brand-mark img { width: 40px; height: 40px; }
+  .sidebar-brand h1 { font-size: 36px; white-space: normal; }
+  .sidebar-brand h1 span { display: block; }
+  .sidebar .sidebar-links { justify-content: center; gap: 18px; font-size: 9px; padding: 4px 0 11px; margin: 0 0 5px; border-bottom: 2px solid #1b292c; }
+  .sidebar-offer-count { padding: 6px 9px; margin: 14px 0 5px; gap: 7px; border-width: 2px; font-size: 10px; }
+  .sidebar-offer-count strong { font-size: 24px; }
+  .sidebar-offer-count small { font-size: 11px; }
+  .side-sorting { margin-top: 15px; border-top: 2px solid #1b292c; }
+  .side-sorting h2 { font-size: 13px; margin: 9px 2px; }
+  .side-sorting .sort-settings { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 3px 0 4px; }
+  .sort-modes, .sort-direction, .sort-rule-list { grid-column: auto; grid-row: auto; }
+  .sort-modes { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+  .sort-modes button { min-height: 32px; font-size: 11px; padding: 4px 2px; }
+  .sort-rule-list { grid-template-columns: minmax(0, 1fr); gap: 6px; margin-top: 13px; }
+  .sort-rule-list button { min-height: auto; font-size: 10px; padding: 7px; }
+  .sort-direction { gap: 5px; }
+  .sort-direction button { min-height: 31px; font-size: 11px; padding: 5px; }
+  .side-bottom { display: grid; gap: 7px; margin-top: auto; padding-top: 15px; }
+  .save-indicator { font-size: 10px; }
+  .sidebar-actions { position: static; display: grid; grid-template-columns: 1fr 1fr; margin-top: 9px; padding: 0; gap: 9px; }
+  .sidebar-actions .sidebar-button { width: 100%; min-height: 36px; font-size: 13px; padding: 9px 3px; }
+  .hand-row { --mobile-card-width: 89px; grid-row: 1; min-height: 158px; grid-template-columns: minmax(0, 1fr) calc(var(--mobile-card-width) + 4px); gap: 10px; }
+  .editor-drop-zone { grid-row: 2; }
+  .hand-row .hand-zone { overflow: hidden; padding: 4px; }
+  .hand-row .offer-hand { justify-content: flex-start; overflow-x: auto; padding: 20px 8px 12px; gap: 10px; scrollbar-width: thin; }
+  .hand-row .offer-slot, .offer-hand.is-dense .offer-slot { width: var(--mobile-card-width); flex: 0 0 var(--mobile-card-width); }
+  .hand-row .combined-pile .deck-action { width: var(--mobile-card-width); }
+  .offer-hand .offer-slot + .offer-slot, .offer-hand.is-dense .offer-slot + .offer-slot { margin-left: 0; }
+  .offer-hand .offer-slot .slot-name { font-size: 12px; }
+  .offer-hand .offer-slot .slot-score { font-size: 14px; }
+  .offer-slot, .deck-action { touch-action: auto; }
+  .undo-discard { font-size: 12px; min-height: 44px; white-space: normal; }
+  .offer-editor { overflow: hidden; }
+  .editor-scroll { flex: none; overflow: visible; }
+  .offer-summary { padding: 14px 12px; }
+  .summary-identity { flex-wrap: nowrap; gap: 6px; }
+  .summary-identity .editor-name { flex: 1; min-width: 0; }
+  .summary-identity .editor-name input { font-size: 16px; min-width: 0; min-height: 44px; }
+  .summary-actions { width: auto; flex: none; gap: 4px; }
+  .summary-actions .icon-button { flex: none; width: 32px; min-width: 32px; height: 40px; }
+  .summary-actions .icon-button > span { font-size: 22px; line-height: 24px; }
+  .summary-actions .icon-button small { display: none; }
+  .summary-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .summary-metrics span, .summary-metrics strong small { font-size: 12px; }
+  .summary-metrics strong, .summary-metrics .main-result strong { font-size: 24px; overflow-wrap: anywhere; }
+  .editor-columns { padding: 16px 12px; gap: 24px; }
+  .column-heading, .column-heading span { font-size: 18px; }
+  .field-grid, .holiday-fields, .fees-column > .contribution-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; }
+  .field-label, .preference-fields .field-label, .operand-caption, .operand-caption > span { font-size: 12px; }
+  .input-wrap, .pixel-select { min-height: 48px; }
+  .input-wrap input, .pixel-select, .preference-fields .pixel-select { font-size: 16px; }
+  .input-suffix, .holiday-fields .input-suffix { font-size: 11px; }
+  /* Direct numeric entry avoids tiny stepper targets on a phone. */
+  .value-arrows { display: none; }
+  .operand, .shared-income-table .operand { height: 48px; min-height: 48px; }
+  .operand input, .shared-income-table .operand input, .annual-income-table .operand input { font-size: 24px; }
+  .shared-income-table thead th:first-child { width: 30%; font-size: 12px; }
+  .shared-income-table thead th:nth-child(2), .shared-income-table thead th:last-child { width: calc(35% - 12px); font-size: 12px; white-space: normal; }
+  .shared-income-table thead th.income-operator-heading, .shared-income-table .income-operator-cell { width: 24px; padding: 0; }
+  .income-item-title { font-size: 12px; line-height: 18px; }
+  .income-item-total { flex-wrap: nowrap; gap: 4px; }
+  .income-item-total .tax-symbol { width: 18px; height: 18px; min-width: 18px; font-size: 10px; }
+  .shared-income-table .income-item-total output { font-size: 14px; }
+  .shared-income-table caption > span, .shared-income-table caption small { font-size: 12px; }
+  .shared-income-table output { font-size: 16px; }
+  .income-expand, .result-details .fold-toggle { min-height: 44px; font-size: 14px; }
+  .field-help, .product-note { font-size: 12px; }
+  .offer-editor > .result-details { flex: none; max-height: none; overflow: visible; padding: 12px; }
+  .offer-editor:has(> .result-details .fold-toggle[aria-expanded=true]) > .editor-scroll { display: block; }
+  .offer-editor:has(> .result-details .fold-toggle[aria-expanded=true]) > .result-details { flex: none; }
+  .text-results { font-size: 13px; }
+  .text-results > div { flex-wrap: wrap; }
+  .pixel-options { font-size: 16px; }
+  .pixel-options [role=option] { min-height: 44px; }
+  .dialog-close { width: 44px; height: 44px; flex: none; }
+  .options-content label { min-height: 44px; }
+  .toast { bottom: calc(16px + env(safe-area-inset-bottom)); }
+  input { scroll-margin-block: 24px; }
+}
